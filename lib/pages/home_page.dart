@@ -36,42 +36,87 @@ class _HomeState extends State<Home> {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-            gradient:
-                LinearGradient(colors: [Color(0xFF2980B9), Color(0xFF6DD5FA)])),
+          // gradient: LinearGradient(colors: [Color(0xFF2980B9), Color(0xFF6DD5FA)])
+          color: Colors.cyan[400],
+        ),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-
                 CupertinoSearchTextField(
                   placeholder: "Search anything",
                   backgroundColor: Colors.white,
                   padding: EdgeInsets.all(10),
                 ),
-                SizedBox(height: 25,),
-                Align(alignment:Alignment.centerLeft,child: Text("Best of the Month",textAlign: TextAlign.left,style: TextStyle(fontSize: 30,fontWeight: FontWeight.w900,color: Colors.white,),)),
-                SizedBox(height: 15,),
+                SizedBox(
+                  height: 25,
+                ),
+                Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Best of the Month",
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
+                    )),
+                SizedBox(
+                  height: 15,
+                ),
                 CarouselSlider(
                   options: CarouselOptions(height: 350.0),
                   items: imageRepository.map((i) {
-                    return Builder(
-                      builder: (BuildContext context) {
-                        return Container(
-                            width: MediaQuery.of(context).size.width,
-                            margin: EdgeInsets.symmetric(horizontal: 10.0),
-                            decoration: BoxDecoration(
+                    return Builder(builder: (BuildContext context) {
+                      return Container(
+                          width: MediaQuery.of(context).size.width,
+                          margin: EdgeInsets.symmetric(horizontal: 10.0),
+                          decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(20),
-                                image: DecorationImage(
+                              image: DecorationImage(
                                   fit: BoxFit.cover,
-                                    image: NetworkImage(imageRepository[imageRepository.indexOf(i)].url))),
-                            child: Text(""));
-                      },
-                    );
+                                  image: NetworkImage(imageRepository[
+                                          imageRepository.indexOf(i)]
+                                      .url))),
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                IconButton(
+                                  onPressed: () => {
+                                    print(imageRepository[imageRepository.indexOf(i)].url.toString())},
+                                  icon: Icon(Icons.wallpaper_outlined),
+                                  color: Colors.white,
+                                  splashRadius: 3,
+                                  splashColor: Colors.blue,
+                                  iconSize: 25,
+                                ),
+                                IconButton(
+                                  onPressed: () => {},
+                                  icon: Icon(Icons.add_circle_outline_rounded),
+                                  color: Colors.white,
+                                  splashRadius: 3,
+                                  splashColor: Colors.blue,
+                                  iconSize: 25,
+                                ),
+                                IconButton(
+                                  onPressed: () => {},
+                                  icon: Icon(Icons.favorite_border_outlined),
+                                  color: Colors.white,
+                                  splashRadius: 3,
+                                  splashColor: Colors.blue,
+                                  iconSize: 25,
+                                ),
+                              ]));
+                    });
                   }).toList(),
                 ),
-                SizedBox(height: 20,),
+                SizedBox(
+                  height: 20,
+                ),
                 Card(
                   elevation: 3,
                   child: ListTile(
