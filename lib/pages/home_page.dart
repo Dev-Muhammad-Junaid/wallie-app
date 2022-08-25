@@ -59,6 +59,21 @@ class _HomeState extends State<Home> {
                     selectedColor: Colors.deepOrange,
                     subtitle: Text("Subtitle"),
                   ),
+                ),
+                Card(
+                  elevation: 3,
+                  child: ListTile(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15)),
+                    title: Text("Image"),
+                    style: ListTileStyle.drawer,
+                    leading: Image.network(
+                        'https://images.pexels.com/photos/6984984/pexels-photo-6984984.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'),
+                    contentPadding: EdgeInsets.all(10),
+                    tileColor: Colors.white,
+                    selectedColor: Colors.deepOrange,
+                    subtitle: Text("Subtitle"),
+                  ),
                 )
               ],
             ),
