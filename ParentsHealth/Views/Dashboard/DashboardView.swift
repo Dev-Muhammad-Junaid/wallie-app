@@ -5,8 +5,10 @@ struct DashboardView: View {
     var onOpenSettings: () -> Void = {}
 
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var parentStore: SelectedParentStore
     @Query(sort: \ParentProfile.name) private var parents: [ParentProfile]
     @State private var selectedParentID: UUID?
+    @State private var showAlerts = false
 
     private var selectedParent: ParentProfile? {
         if let id = selectedParentID {
@@ -29,16 +31,23 @@ struct DashboardView: View {
             }
             .navigationBarHidden(true)
             .overlay(alignment: .topTrailing) {
-                Button(action: onOpenSettings) {
-                    Image(systemName: "gearshape.fill")
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.8))
-                        .padding(12)
-                        .liquidGlass(cornerRadius: 14, interactive: true)
+                HStack(spacing: 10) {
+                    alertsHeaderButton
+                    Button(action: onOpenSettings) {
+                        Image(systemName: "gearshape.fill")
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(.white.opacity(0.8))
+                            .padding(12)
+                            .liquidGlass(cornerRadius: 14, interactive: true)
+                    }
+                    .accessibilityIdentifier("settingsButton")
                 }
-                .accessibilityIdentifier("settingsButton")
                 .padding(.trailing, 20)
                 .padding(.top, 8)
+            }
+            .sheet(isPresented: $showAlerts) {
+                HealthAlertsView()
+                    .environmentObject(parentStore)
             }
         }
         .onAppear {
@@ -129,6 +138,10 @@ struct DashboardView: View {
                 .frame(width: 130)
             }
 
+            DashboardAlertsSummary(parent: parent) {
+                showAlerts = true
+            }
+
             GlassCard {
                 VStack(alignment: .leading, spacing: 14) {
                     HStack {
@@ -217,6 +230,33 @@ struct DashboardView: View {
         default: return "Good evening"
         }
     }
+
+    @ViewBuilder
+    private var alertsHeaderButton: some View {
+        let count = selectedParent.map { HealthAlertService.alertCount(for: $0) } ?? 0
+        Button {
+            showAlerts = true
+        } label: {
+            ZStack(alignment: .topTrailing) {
+                Image(systemName: "bell.fill")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.8))
+                    .padding(12)
+                    .liquidGlass(cornerRadius: 14, interactive: true)
+
+                if count > 0 {
+                    Text("\(min(count, 9))")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 18, height: 18)
+                        .background(Circle().fill(AppTheme.warmCoral))
+                        .offset(x: 4, y: -4)
+                }
+            }
+        }
+        .accessibilityIdentifier("alertsHeaderButton")
+        .accessibilityLabel(count > 0 ? "\(count) health alerts" : "Health alerts")
+    }
 }
 
 /// Simple flow layout for condition tags.
@@ -262,5 +302,6 @@ struct FlowLayout: Layout {
 
 #Preview {
     DashboardView()
+        .environmentObject(SelectedParentStore())
         .modelContainer(SampleData.previewContainer)
 }

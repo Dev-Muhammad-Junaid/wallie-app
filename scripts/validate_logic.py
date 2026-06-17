@@ -55,5 +55,20 @@ pts = trend_sorted([("2025-09",118),("2026-01",128),("2026-03",142)])
 test("trend order", pts[0][1] < pts[-1][1])
 test("rising glucose", pts[-1][1] > pts[0][1])
 
+print("\nHealthAlertService")
+def glucose_boundary(value):
+    return "above" if value > 100 else ("below" if value < 70 else "normal")
+
+def glucose_severity(value):
+    if value >= 250 or value < 54:
+        return "critical"
+    if value >= 180 or value < 70:
+        return "attention"
+    return "watch"
+
+test("glucose above range", glucose_boundary(142) == "above")
+test("glucose severity attention", glucose_severity(220) == "attention")
+test("glucose severity critical", glucose_severity(260) == "critical")
+
 print(f"\n{'='*40}\nResults: {PASS} passed, {FAIL} failed")
 sys.exit(1 if FAIL else 0)

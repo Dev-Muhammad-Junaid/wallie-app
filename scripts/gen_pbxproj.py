@@ -28,11 +28,13 @@ app_files = [
     ("Models", "Models/Medication.swift", "Medication.swift"),
     ("Models", "Models/LabReport.swift", "LabReport.swift"),
     ("Models", "Models/LabTestKey.swift", "LabTestKey.swift"),
+    ("Models", "Models/HealthAlert.swift", "HealthAlert.swift"),
     ("Design", "Design/AppTheme.swift", "AppTheme.swift"),
     ("Design", "Design/LiquidGlassComponents.swift", "LiquidGlassComponents.swift"),
     ("Design", "Design/SharedComponents.swift", "SharedComponents.swift"),
     ("Views", "Views/MainTabView.swift", "MainTabView.swift"),
     ("Dashboard", "Views/Dashboard/DashboardView.swift", "DashboardView.swift"),
+    ("Alerts", "Views/Alerts/HealthAlertsView.swift", "HealthAlertsView.swift"),
     ("Parents", "Views/Parents/ParentsListView.swift", "ParentsListView.swift"),
     ("Parents", "Views/Parents/ParentDetailView.swift", "ParentDetailView.swift"),
     ("Parents", "Views/Parents/ParentFormView.swift", "ParentFormView.swift"),
@@ -54,6 +56,7 @@ app_files = [
     ("Services", "Services/ReportExportService.swift", "ReportExportService.swift"),
     ("Services", "Services/AppSettings.swift", "AppSettings.swift"),
     ("Services", "Services/LabTrendService.swift", "LabTrendService.swift"),
+    ("Services", "Services/HealthAlertService.swift", "HealthAlertService.swift"),
     ("Services", "Services/LabAnalysisService.swift", "LabAnalysisService.swift"),
     ("Services", "Services/LabReportRepository.swift", "LabReportRepository.swift"),
     ("Services", "Services/SelectedParentStore.swift", "SelectedParentStore.swift"),
@@ -67,6 +70,7 @@ test_files = [
     ("ParentsHealthTests/ReportExportServiceTests.swift", "ReportExportServiceTests.swift"),
     ("ParentsHealthTests/LabTrendServiceTests.swift", "LabTrendServiceTests.swift"),
     ("ParentsHealthTests/LabAnalysisServiceTests.swift", "LabAnalysisServiceTests.swift"),
+    ("ParentsHealthTests/HealthAlertServiceTests.swift", "HealthAlertServiceTests.swift"),
 ]
 uitest_files = [("ParentsHealthUITests/ParentsHealthUITests.swift", "ParentsHealthUITests.swift")]
 

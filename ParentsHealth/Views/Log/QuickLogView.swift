@@ -131,6 +131,11 @@ struct QuickLogView: View {
             parent: parent
         )
         modelContext.insert(metric)
+        if let alert = HealthAlertService.alertIfNeeded(for: metric, parent: parent) {
+            Task {
+                await NotificationService.shared.notifyHealthAlert(alert)
+            }
+        }
         dismiss()
     }
 }

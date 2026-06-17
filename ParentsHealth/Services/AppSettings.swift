@@ -26,6 +26,17 @@ enum AppSettings {
         set { UserDefaults.standard.set(newValue, forKey: notificationsEnabledKey) }
     }
 
+    private static let healthAlertsEnabledKey = "healthAlertsEnabled"
+
+    /// Notify when a new vital or lab value is saved outside normal range.
+    static var healthAlertsEnabled: Bool {
+        get {
+            if UserDefaults.standard.object(forKey: healthAlertsEnabledKey) == nil { return true }
+            return UserDefaults.standard.bool(forKey: healthAlertsEnabledKey)
+        }
+        set { UserDefaults.standard.set(newValue, forKey: healthAlertsEnabledKey) }
+    }
+
     private static let useRemoteLabAPIKey = "useRemoteLabAPI"
     private static let labAPIEndpointKey = "labAPIEndpoint"
     private static let labAPIKeyKey = "labAPIKey"

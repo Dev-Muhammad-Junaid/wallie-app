@@ -10,8 +10,9 @@ struct SettingsView: View {
     @StateObject private var healthKit = HealthKitService.shared
 
     @State private var healthKitEnabled = AppSettings.healthKitEnabled
-    @State private var weeklySummaryEnabled = AppSettings.weeklySummaryEnabled
     @State private var notificationsEnabled = AppSettings.notificationsEnabled
+    @State private var healthAlertsEnabled = AppSettings.healthAlertsEnabled
+    @State private var weeklySummaryEnabled = AppSettings.weeklySummaryEnabled
     @State private var selectedParentForExport: UUID?
     @State private var selectedParentForSync: UUID?
     @State private var showShareSheet = false
@@ -62,6 +63,11 @@ struct SettingsView: View {
                         .onChange(of: notificationsEnabled) { _, enabled in
                             AppSettings.notificationsEnabled = enabled
                             Task { await updateNotifications(enabled: enabled) }
+                        }
+
+                    Toggle("Out-of-Range Health Alerts", isOn: $healthAlertsEnabled)
+                        .onChange(of: healthAlertsEnabled) { _, enabled in
+                            AppSettings.healthAlertsEnabled = enabled
                         }
 
                     Toggle("Weekly Health Summary", isOn: $weeklySummaryEnabled)

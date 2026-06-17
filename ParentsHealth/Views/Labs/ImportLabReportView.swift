@@ -203,7 +203,13 @@ struct ImportLabReportView: View {
 
     private func savePreview() {
         guard let preview else { return }
-        _ = LabReportRepository.save(analysis: preview, parent: parent, title: nil, context: modelContext)
+        let report = LabReportRepository.save(analysis: preview, parent: parent, title: nil, context: modelContext)
+        let alerts = HealthAlertService.labAlerts(from: preview, parent: parent, reportID: report.id)
+        if !alerts.isEmpty {
+            Task {
+                await NotificationService.shared.notifyHealthAlerts(alerts)
+            }
+        }
         dismiss()
     }
 

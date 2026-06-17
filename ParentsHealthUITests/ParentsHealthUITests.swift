@@ -57,6 +57,19 @@ final class ParentsHealthUITests: XCTestCase {
         }
     }
 
+    func testOpenHealthAlertsFromDashboard() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["UI_TESTING"]
+        app.launch()
+
+        XCTAssertTrue(app.staticTexts["ParentsHealth"].waitForExistence(timeout: 5))
+        let alertsButton = app.buttons["alertsHeaderButton"]
+        if alertsButton.waitForExistence(timeout: 3) {
+            alertsButton.tap()
+            XCTAssertTrue(app.staticTexts["Health Alerts"].waitForExistence(timeout: 3))
+        }
+    }
+
     func testChartsLabTrendsSegmentExists() throws {
         let app = XCUIApplication()
         app.launchArguments = ["UI_TESTING"]

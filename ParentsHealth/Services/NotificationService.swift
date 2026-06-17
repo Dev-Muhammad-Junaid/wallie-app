@@ -92,7 +92,35 @@ final class NotificationService: ObservableObject {
         for medication in medications {
             await scheduleMedicationReminders(for: medication)
         }
-        await scheduleWeeklySummary(for: parents)
+        if AppSettings.weeklySummaryEnabled {
+            await scheduleWeeklySummary(for: parents)
+        }
+    }
+
+    func notifyHealthAlert(_ alert: HealthAlert) async {
+        guard isAuthorized, AppSettings.notificationsEnabled, AppSettings.healthAlertsEnabled else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = "Health Alert · \(alert.parentName)"
+        content.body = "\(alert.title): \(alert.valueText) — \(alert.boundary.label). \(alert.careHint)"
+        content.sound = .default
+        content.categoryIdentifier = "HEALTH_ALERT"
+        content.userInfo = [
+            "type": "health_alert",
+            "parentId": alert.parentID.uuidString,
+            "alertId": alert.id
+        ]
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let identifier = "health-alert-\(alert.id)-\(UUID().uuidString)"
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+        try? await center.add(request)
+    }
+
+    func notifyHealthAlerts(_ alerts: [HealthAlert]) async {
+        for alert in alerts {
+            await notifyHealthAlert(alert)
+        }
     }
 
     static func medicationIdentifier(medicationId: UUID, hour: Int) -> String {

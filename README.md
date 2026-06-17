@@ -12,6 +12,7 @@ A private, on-device iOS app to track your parents' health — vitals, medicatio
 - **HealthKit Sync** — optional import of BP, weight, HR, glucose from Apple Health
 - **Export Reports** — share text health summaries
 - **Health Score** — composite score from recent vitals
+- **Health Alerts** — out-of-range vitals and lab markers with severity, boundary analysis, trend direction, and plain-language health impact notes
 - **Liquid Glass UI** — `.glassEffect()` on iOS 26+ with material fallback on iOS 17–25
 
 ## Requirements
@@ -63,6 +64,21 @@ Falls back to on-device parsing if API is unavailable.
 - **Labs** — photo or paste → Analyze → Save (no title required)
 - **Parent chips** — shared across Labs, Charts, Quick Log
 
+## Health Alerts
+
+The app surfaces **out-of-range indicators** so you can see what needs attention without digging through every log:
+
+1. **Home** — bell icon (badge count) and **Health Alerts** card with top priorities
+2. **Alerts screen** — filter by vitals vs labs; each card shows:
+   - Value vs reference range (above/below boundary)
+   - Severity: Watch · Needs attention · Priority
+   - Trend for labs (improving / worsening / stable)
+   - **What this can affect** — educational notes on possible body/health impact
+   - Suggested next step (informational, not medical advice)
+3. **Notifications** — optional push when a new vital or lab save is out of range (Settings → Out-of-Range Health Alerts)
+
+Vitals use the last 7 days; labs use the latest result per test key from saved reports.
+
 ## Testing
 
 ### Xcode (full suite)
@@ -75,7 +91,7 @@ xcodebuild test \
   CODE_SIGNING_ALLOWED=NO
 ```
 
-**Unit tests** (`ParentsHealthTests`): health score, lab parser, metric ranges, adherence, export  
+**Unit tests** (`ParentsHealthTests`): health score, lab parser, metric ranges, adherence, export, health alerts  
 **UI tests** (`ParentsHealthUITests`): tab navigation, settings, core screens
 
 ### Offline logic validation (no Xcode)
