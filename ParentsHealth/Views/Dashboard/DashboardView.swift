@@ -2,6 +2,8 @@ import SwiftUI
 import SwiftData
 
 struct DashboardView: View {
+    var onOpenSettings: () -> Void = {}
+
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \ParentProfile.name) private var parents: [ParentProfile]
     @State private var selectedParentID: UUID?
@@ -26,6 +28,18 @@ struct DashboardView: View {
                 .padding(.bottom, 120)
             }
             .navigationBarHidden(true)
+            .overlay(alignment: .topTrailing) {
+                Button(action: onOpenSettings) {
+                    Image(systemName: "gearshape.fill")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.8))
+                        .padding(12)
+                        .liquidGlass(cornerRadius: 14, interactive: true)
+                }
+                .accessibilityIdentifier("settingsButton")
+                .padding(.trailing, 20)
+                .padding(.top, 8)
+            }
         }
         .onAppear {
             if selectedParentID == nil {

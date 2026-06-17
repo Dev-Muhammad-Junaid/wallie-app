@@ -77,6 +77,16 @@ struct AddMedicationView: View {
             parent: parent
         )
         modelContext.insert(medication)
+
+        if AppSettings.notificationsEnabled {
+            Task {
+                if !NotificationService.shared.isAuthorized {
+                    _ = await NotificationService.shared.requestAuthorization()
+                }
+                await NotificationService.shared.scheduleMedicationReminders(for: medication)
+            }
+        }
+
         dismiss()
     }
 }

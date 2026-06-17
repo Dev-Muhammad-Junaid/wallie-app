@@ -3,14 +3,23 @@ import SwiftData
 
 @main
 struct ParentsHealthApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+
+    private static var isUITesting: Bool {
+        ProcessInfo.processInfo.arguments.contains("UI_TESTING")
+    }
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             ParentProfile.self,
             HealthMetric.self,
             Medication.self,
-            MedicationLog.self
+            MedicationLog.self,
+            LabReport.self,
+            LabResult.self
         ])
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        let inMemory = ProcessInfo.processInfo.arguments.contains("UI_TESTING")
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
         do {
             return try ModelContainer(for: schema, configurations: config)
         } catch {
@@ -22,7 +31,11 @@ struct ParentsHealthApp: App {
         WindowGroup {
             MainTabView()
                 .onAppear {
-                    SampleData.seedIfNeeded(context: sharedModelContainer.mainContext)
+                    if !Self.isUITesting {
+                        SampleData.seedIfNeeded(context: sharedModelContainer.mainContext)
+                    } else {
+                        SampleData.seed(into: sharedModelContainer.mainContext)
+                    }
                 }
         }
         .modelContainer(sharedModelContainer)

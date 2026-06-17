@@ -20,6 +20,9 @@ final class ParentProfile {
     @Relationship(deleteRule: .cascade, inverse: \Medication.parent)
     var medications: [Medication]
 
+    @Relationship(deleteRule: .cascade, inverse: \LabReport.parent)
+    var labReports: [LabReport]
+
     init(
         name: String,
         dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -70, to: Date()) ?? Date(),
@@ -42,6 +45,7 @@ final class ParentProfile {
         self.createdAt = Date()
         self.metrics = []
         self.medications = []
+        self.labReports = []
     }
 
     var initials: String {
@@ -64,14 +68,8 @@ final class ParentProfile {
         return Array(latest.values)
     }
 
-    func healthScore() -> Int {
-        let recent = metrics.filter {
-            $0.recordedAt > Calendar.current.date(byAdding: .day, value: -7, to: Date())!
-        }
-        guard !recent.isEmpty else { return 75 }
-
-        let normalCount = recent.filter(\.isInNormalRange).count
-        let ratio = Double(normalCount) / Double(recent.count)
-        return Int(60 + ratio * 40)
+    func healthScore(referenceDate: Date = Date()) -> Int {
+        let snapshots = metrics.map(HealthMetricSnapshot.init)
+        return HealthScoreCalculator.score(from: snapshots, referenceDate: referenceDate)
     }
 }

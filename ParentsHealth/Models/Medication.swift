@@ -42,10 +42,11 @@ final class Medication {
 
     var adherenceThisWeek: Double {
         let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
-        let expectedDoses = reminderHours.count * 7
-        guard expectedDoses > 0 else { return 1.0 }
         let taken = logs.filter { $0.takenAt >= weekAgo && $0.status == .taken }.count
-        return min(1.0, Double(taken) / Double(expectedDoses))
+        return MedicationAdherenceCalculator.adherence(
+            reminderHoursPerDay: reminderHours.count,
+            takenCount: taken
+        )
     }
 }
 

@@ -11,6 +11,7 @@ struct ParentDetailView: View {
                 heroHeader
                 vitalsSection
                 medicationsSection
+                labReportsSection
                 infoSection
             }
             .padding(.horizontal, 20)
@@ -97,6 +98,32 @@ struct ParentDetailView: View {
                 } else {
                     ForEach(parent.medications, id: \.id) { med in
                         MedicationRow(medication: med)
+                    }
+                }
+            }
+        }
+    }
+
+    private var labReportsSection: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Lab Reports")
+                    .font(.sectionHeadline)
+                    .foregroundStyle(.white)
+
+                if parent.labReports.isEmpty {
+                    Text("No lab reports imported")
+                        .foregroundStyle(.white.opacity(0.5))
+                } else {
+                    ForEach(parent.labReports.sorted(by: { $0.importedAt > $1.importedAt }).prefix(3), id: \.id) { report in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(report.title)
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(.white)
+                            Text("\(report.results.count) values · \(report.abnormalCount) flagged")
+                                .font(.caption)
+                                .foregroundStyle(.white.opacity(0.5))
+                        }
                     }
                 }
             }

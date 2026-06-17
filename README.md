@@ -1,13 +1,16 @@
 # ParentsHealth
 
-A private, on-device iOS app to track your parents' health — vitals, medications, monthly trends, and health scores. Built with native SwiftUI and Apple's Liquid Glass design language.
+A private, on-device iOS app to track your parents' health — vitals, medications, monthly trends, lab report analysis, and health scores. Built with native SwiftUI and Apple's Liquid Glass design language.
 
 ## Features
 
 - **Parent Profiles** — manage multiple parents with conditions, blood type, emergency contacts
 - **Daily Vitals** — log blood pressure, weight, heart rate, and blood glucose
 - **Monthly Charts** — Swift Charts trends with month navigation and min/avg/max stats
-- **Medication Tracking** — schedules, adherence percentage, taken/skipped logging
+- **Medication Tracking** — schedules, local push reminders, adherence percentage
+- **Lab Report Analysis** — on-device OCR (Vision) + value extraction + AI-style insights
+- **HealthKit Sync** — optional import of BP, weight, HR, glucose from Apple Health
+- **Export Reports** — share text health summaries
 - **Health Score** — composite score from recent vitals
 - **Liquid Glass UI** — `.glassEffect()` on iOS 26+ with material fallback on iOS 17–25
 
@@ -26,20 +29,45 @@ A private, on-device iOS app to track your parents' health — vitals, medicatio
 
 Sample data (Margaret & Robert Chen) is seeded automatically on first launch.
 
+## Testing
+
+### Xcode (full suite)
+
+```bash
+xcodebuild test \
+  -project ParentsHealth.xcodeproj \
+  -scheme ParentsHealth \
+  -destination 'platform=iOS Simulator,name=iPhone 16' \
+  CODE_SIGNING_ALLOWED=NO
+```
+
+**Unit tests** (`ParentsHealthTests`): health score, lab parser, metric ranges, adherence, export  
+**UI tests** (`ParentsHealthUITests`): tab navigation, settings, core screens
+
+### Offline logic validation (no Xcode)
+
+```bash
+python3 scripts/validate_logic.py
+```
+
 ## Project Structure
 
 ```
 ParentsHealth/
-├── App/              App entry point
-├── Models/           SwiftData models
+├── App/              Entry point, app delegate
+├── Models/           SwiftData models (profiles, metrics, meds, labs)
 ├── Design/           Liquid Glass components & theme
-├── Views/            Dashboard, Parents, Charts, Medications, Log
-└── Services/         Sample data seeder
+├── Views/            Dashboard, Parents, Charts, Labs, Meds, Settings
+└── Services/         Notifications, HealthKit, OCR, parsers, export
+
+ParentsHealthTests/   Unit tests
+ParentsHealthUITests/ UI tests
+scripts/              Offline logic validation
 ```
 
 ## Privacy
 
-All health data is stored locally on-device using SwiftData. No cloud sync, no analytics, no data sharing.
+All health data is stored locally on-device using SwiftData. Lab OCR and analysis run entirely on-device. No cloud sync, no analytics, no data sharing.
 
 ## Linear Project
 

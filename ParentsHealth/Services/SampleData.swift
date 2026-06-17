@@ -3,7 +3,10 @@ import SwiftData
 
 enum SampleData {
     static let previewContainer: ModelContainer = {
-        let schema = Schema([ParentProfile.self, HealthMetric.self, Medication.self, MedicationLog.self])
+        let schema = Schema([
+            ParentProfile.self, HealthMetric.self, Medication.self,
+            MedicationLog.self, LabReport.self, LabResult.self
+        ])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try! ModelContainer(for: schema, configurations: config)
         seed(into: container.mainContext)
@@ -31,7 +34,7 @@ enum SampleData {
     }
 
     @MainActor
-    private static func seed(into context: ModelContext) {
+    static func seed(into context: ModelContext) {
         let mom = ParentProfile(
             name: "Margaret Chen",
             dateOfBirth: Calendar.current.date(byAdding: .year, value: -72, to: Date())!,
@@ -123,5 +126,55 @@ enum SampleData {
             let log = MedicationLog(status: .taken, takenAt: Date().addingTimeInterval(Double.random(in: -604800...0)), medication: lisinopril)
             context.insert(log)
         }
+
+        let sampleText = """
+        Lab Report Date: 03/15/2026
+        Glucose: 142 mg/dL
+        HbA1c: 6.8 %
+        Cholesterol: 215 mg/dL
+        LDL: 130 mg/dL
+        HDL: 45 mg/dL
+        Creatinine: 1.0 mg/dL
+        """
+        let parsed = LabReportParser.parse(text: sampleText)
+        let report = LabReport(
+            title: "Annual Panel",
+            rawText: sampleText,
+            labDate: LabReportParser.extractLabDate(from: sampleText),
+            summaryInsight: LabReportParser.generateInsights(results: parsed, parentName: mom.name),
+            parent: mom
+        )
+        context.insert(report)
+        for item in parsed {
+            context.insert(LabResult(
+                testName: item.testName,
+                value: item.value,
+                unit: item.unit,
+                referenceRange: item.referenceRange,
+                isAbnormal: item.isAbnormal,
+                labReport: report
+            ))
+        }
+    }
+
+    static var sampleLabReport: LabReport {
+        let text = "Glucose: 142 mg/dL\nHbA1c: 6.8 %"
+        let parsed = LabReportParser.parse(text: text)
+        let report = LabReport(
+            title: "Sample Panel",
+            rawText: text,
+            summaryInsight: LabReportParser.generateInsights(results: parsed, parentName: "Margaret")
+        )
+        for item in parsed {
+            report.results.append(LabResult(
+                testName: item.testName,
+                value: item.value,
+                unit: item.unit,
+                referenceRange: item.referenceRange,
+                isAbnormal: item.isAbnormal,
+                labReport: report
+            ))
+        }
+        return report
     }
 }
