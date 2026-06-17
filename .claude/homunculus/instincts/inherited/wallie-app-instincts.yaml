@@ -1,0 +1,260 @@
+# Instincts generated from https://github.com/Dev-Muhammad-Junaid/wallie-app
+# Generated: 2026-06-17T11:30:13.004Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: wallie-app-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/Dev-Muhammad-Junaid/wallie-app
+---
+
+# Wallie App Commit Length
+
+## Action
+
+Write moderate-length commit messages (~57 characters)
+
+## Evidence
+
+- Average commit message length: 57 chars
+- Based on 1 commits
+
+---
+id: wallie-app-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/Dev-Muhammad-Junaid/wallie-app
+---
+
+# Wallie App Naming Files
+
+## Action
+
+Use PascalCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: PascalCase
+
+---
+id: wallie-app-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/Dev-Muhammad-Junaid/wallie-app
+---
+
+# Wallie App Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: wallie-app-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/Dev-Muhammad-Junaid/wallie-app
+---
+
+# Wallie App Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: wallie-app-test-separate
+trigger: "when writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/Dev-Muhammad-Junaid/wallie-app
+---
+
+# Wallie App Test Separate
+
+## Action
+
+Place tests in the tests/ or __tests__/ directory, mirroring src structure
+
+## Evidence
+
+- Separate test directory pattern detected
+- Tests live in dedicated test folders
+
+---
+id: wallie-app-instinct-file-naming
+trigger: "When creating a new Swift file"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: Dev-Muhammad-Junaid/wallie-app
+---
+
+# Wallie App Instinct File Naming
+
+## Action
+
+Name the file using PascalCase
+
+## Evidence
+
+- Pattern in namingConventions.files
+
+---
+id: wallie-app-instinct-function-naming
+trigger: "When defining a function in Swift"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: Dev-Muhammad-Junaid/wallie-app
+---
+
+# Wallie App Instinct Function Naming
+
+## Action
+
+Use camelCase for the function name
+
+## Evidence
+
+- Pattern in namingConventions.functions
+
+---
+id: wallie-app-instinct-class-naming
+trigger: "When creating a new class in Swift"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: Dev-Muhammad-Junaid/wallie-app
+---
+
+# Wallie App Instinct Class Naming
+
+## Action
+
+Use PascalCase for the class name
+
+## Evidence
+
+- Pattern in namingConventions.classes
+
+---
+id: wallie-app-instinct-constant-naming
+trigger: "When declaring a constant in Swift"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: Dev-Muhammad-Junaid/wallie-app
+---
+
+# Wallie App Instinct Constant Naming
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for the constant name
+
+## Evidence
+
+- Pattern in namingConventions.constants
+
+---
+id: wallie-app-instinct-import-style
+trigger: "When importing modules in Swift files"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: Dev-Muhammad-Junaid/wallie-app
+---
+
+# Wallie App Instinct Import Style
+
+## Action
+
+Use relative imports
+
+## Evidence
+
+- Pattern in importStyle
+
+---
+id: wallie-app-instinct-export-style
+trigger: "When exporting modules or symbols in Swift"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: Dev-Muhammad-Junaid/wallie-app
+---
+
+# Wallie App Instinct Export Style
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- Pattern in exportStyle
+
+---
+id: wallie-app-instinct-test-location
+trigger: "When adding new test files"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: Dev-Muhammad-Junaid/wallie-app
+---
+
+# Wallie App Instinct Test Location
+
+## Action
+
+Place test files in a separate folder from source code
+
+## Evidence
+
+- Pattern in folderStructure.testLocation
+
+---
+id: wallie-app-instinct-commit-format
+trigger: "When writing a git commit message"
+confidence: 0.8
+domain: git
+source: repo-analysis
+source_repo: Dev-Muhammad-Junaid/wallie-app
+---
+
+# Wallie App Instinct Commit Format
+
+## Action
+
+Write a freeform message without a required prefix, with an average length of ~57 characters
+
+## Evidence
+
+- Pattern in commits.type
+- Pattern in commits.averageLength
+- Example: 'Replace Flutter app with native SwiftUI ParentsHealth app'
+
