@@ -29,6 +29,40 @@ A private, on-device iOS app to track your parents' health — vitals, medicatio
 
 Sample data (Margaret & Robert Chen) is seeded automatically on first launch.
 
+## Lab Reports — How It Works
+
+Each parent has their own lab report history:
+
+```
+Photo or paste → OCR + AI parse → Preview → Save → Charts
+```
+
+1. **Import** — Labs tab → `+` → snap photo or paste text (no long forms)
+2. **Analyze** — On-device by default (`LocalLabAnalysisProvider`). Optional API in Settings.
+3. **Save** — Values stored with canonical `LabTestKey` (glucose, hba1c, LDL, etc.)
+4. **Charts** — Charts tab → **Lab Trends** → line chart across all saved reports
+5. **Compare** — Report detail shows delta vs previous visit
+
+### Future AI API
+
+In **Settings → Lab Report AI**, add your endpoint. Expected JSON:
+
+```json
+{
+  "results": [{ "testKey": "glucose", "testName": "Glucose", "value": 110, "unit": "mg/dL", "referenceRange": "70–100", "isAbnormal": false }],
+  "labDate": "2026-03-15T00:00:00Z",
+  "insights": "Optional summary text"
+}
+```
+
+Falls back to on-device parsing if API is unavailable.
+
+## Quick Entry UX
+
+- **Vitals** — tap metric chip → enter number → Save (2 taps + typing)
+- **Labs** — photo or paste → Analyze → Save (no title required)
+- **Parent chips** — shared across Labs, Charts, Quick Log
+
 ## Testing
 
 ### Xcode (full suite)
