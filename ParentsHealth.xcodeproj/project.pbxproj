@@ -1,0 +1,401 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		BF0000010000000000000001 /* ParentsHealthApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000010000000000000001 /* ParentsHealthApp.swift */; };
+		BF0000010000000000000002 /* MetricType.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000010000000000000002 /* MetricType.swift */; };
+		BF0000010000000000000003 /* ParentProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000010000000000000003 /* ParentProfile.swift */; };
+		BF0000010000000000000004 /* HealthMetric.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000010000000000000004 /* HealthMetric.swift */; };
+		BF0000010000000000000005 /* Medication.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000010000000000000005 /* Medication.swift */; };
+		BF0000010000000000000006 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000010000000000000006 /* AppTheme.swift */; };
+		BF0000010000000000000007 /* LiquidGlassComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000010000000000000007 /* LiquidGlassComponents.swift */; };
+		BF0000010000000000000008 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000010000000000000008 /* MainTabView.swift */; };
+		BF0000010000000000000009 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000010000000000000009 /* DashboardView.swift */; };
+		BF000001000000000000000A /* ParentsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR000001000000000000000A /* ParentsListView.swift */; };
+		BF000001000000000000000B /* ParentDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR000001000000000000000B /* ParentDetailView.swift */; };
+		BF000001000000000000000C /* ParentFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR000001000000000000000C /* ParentFormView.swift */; };
+		BF000001000000000000000D /* ChartsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR000001000000000000000D /* ChartsView.swift */; };
+		BF000001000000000000000E /* MedicationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR000001000000000000000E /* MedicationsView.swift */; };
+		BF000001000000000000000F /* AddMedicationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR000001000000000000000F /* AddMedicationView.swift */; };
+		BF0000010000000000000010 /* QuickLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000010000000000000010 /* QuickLogView.swift */; };
+		BF0000010000000000000011 /* SampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000010000000000000011 /* SampleData.swift */; };
+		BF0000010000000000000012 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FR0000010000000000000012 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		FR0000010000000000000001 /* ParentsHealthApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParentsHealthApp.swift; sourceTree = "<group>"; };
+		FR0000010000000000000002 /* MetricType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricType.swift; sourceTree = "<group>"; };
+		FR0000010000000000000003 /* ParentProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParentProfile.swift; sourceTree = "<group>"; };
+		FR0000010000000000000004 /* HealthMetric.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetric.swift; sourceTree = "<group>"; };
+		FR0000010000000000000005 /* Medication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Medication.swift; sourceTree = "<group>"; };
+		FR0000010000000000000006 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
+		FR0000010000000000000007 /* LiquidGlassComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassComponents.swift; sourceTree = "<group>"; };
+		FR0000010000000000000008 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		FR0000010000000000000009 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		FR000001000000000000000A /* ParentsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParentsListView.swift; sourceTree = "<group>"; };
+		FR000001000000000000000B /* ParentDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParentDetailView.swift; sourceTree = "<group>"; };
+		FR000001000000000000000C /* ParentFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParentFormView.swift; sourceTree = "<group>"; };
+		FR000001000000000000000D /* ChartsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartsView.swift; sourceTree = "<group>"; };
+		FR000001000000000000000E /* MedicationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationsView.swift; sourceTree = "<group>"; };
+		FR000001000000000000000F /* AddMedicationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddMedicationView.swift; sourceTree = "<group>"; };
+		FR0000010000000000000010 /* QuickLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLogView.swift; sourceTree = "<group>"; };
+		FR0000010000000000000011 /* SampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleData.swift; sourceTree = "<group>"; };
+		FR0000010000000000000012 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		FR0000010000000000000013 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FR0000010000000000000014 /* ParentsHealth.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ParentsHealth.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FP0000010000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		GR0000010000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				GR0000010000000000000002 /* ParentsHealth */,
+				GR0000010000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		GR0000010000000000000002 /* ParentsHealth */ = {
+			isa = PBXGroup;
+			children = (
+				GR0000010000000000000004 /* App */,
+				GR0000010000000000000005 /* Models */,
+				GR0000010000000000000006 /* Design */,
+				GR0000010000000000000007 /* Views */,
+				GR0000010000000000000008 /* Services */,
+				FR0000010000000000000012 /* Assets.xcassets */,
+				FR0000010000000000000013 /* Info.plist */,
+			);
+			path = ParentsHealth;
+			sourceTree = "<group>";
+		};
+		GR0000010000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FR0000010000000000000014 /* ParentsHealth.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		GR0000010000000000000004 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				FR0000010000000000000001 /* ParentsHealthApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		GR0000010000000000000005 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				FR0000010000000000000002 /* MetricType.swift */,
+				FR0000010000000000000003 /* ParentProfile.swift */,
+				FR0000010000000000000004 /* HealthMetric.swift */,
+				FR0000010000000000000005 /* Medication.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		GR0000010000000000000006 /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				FR0000010000000000000006 /* AppTheme.swift */,
+				FR0000010000000000000007 /* LiquidGlassComponents.swift */,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
+		GR0000010000000000000007 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				FR0000010000000000000008 /* MainTabView.swift */,
+				GR0000010000000000000009 /* Dashboard */,
+				GR000001000000000000000A /* Parents */,
+				GR000001000000000000000B /* Charts */,
+				GR000001000000000000000C /* Medications */,
+				GR000001000000000000000D /* Log */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		GR0000010000000000000008 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				FR0000010000000000000011 /* SampleData.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		GR0000010000000000000009 /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				FR0000010000000000000009 /* DashboardView.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		GR000001000000000000000A /* Parents */ = {
+			isa = PBXGroup;
+			children = (
+				FR000001000000000000000A /* ParentsListView.swift */,
+				FR000001000000000000000B /* ParentDetailView.swift */,
+				FR000001000000000000000C /* ParentFormView.swift */,
+			);
+			path = Parents;
+			sourceTree = "<group>";
+		};
+		GR000001000000000000000B /* Charts */ = {
+			isa = PBXGroup;
+			children = (
+				FR000001000000000000000D /* ChartsView.swift */,
+			);
+			path = Charts;
+			sourceTree = "<group>";
+		};
+		GR000001000000000000000C /* Medications */ = {
+			isa = PBXGroup;
+			children = (
+				FR000001000000000000000E /* MedicationsView.swift */,
+				FR000001000000000000000F /* AddMedicationView.swift */,
+			);
+			path = Medications;
+			sourceTree = "<group>";
+		};
+		GR000001000000000000000D /* Log */ = {
+			isa = PBXGroup;
+			children = (
+				FR0000010000000000000010 /* QuickLogView.swift */,
+			);
+			path = Log;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		TG0000010000000000000001 /* ParentsHealth */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CL0000010000000000000002 /* Build configuration list for PBXNativeTarget "ParentsHealth" */;
+			buildPhases = (
+				SP0000010000000000000001 /* Sources */,
+				FP0000010000000000000001 /* Frameworks */,
+				RP0000010000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ParentsHealth;
+			productName = ParentsHealth;
+			productReference = FR0000010000000000000014 /* ParentsHealth.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		PR0000010000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					TG0000010000000000000001 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = CL0000010000000000000001 /* Build configuration list for PBXProject "ParentsHealth" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = GR0000010000000000000001;
+			productRefGroup = GR0000010000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				TG0000010000000000000001 /* ParentsHealth */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		RP0000010000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF0000010000000000000012 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		SP0000010000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF0000010000000000000001 /* ParentsHealthApp.swift in Sources */,
+				BF0000010000000000000002 /* MetricType.swift in Sources */,
+				BF0000010000000000000003 /* ParentProfile.swift in Sources */,
+				BF0000010000000000000004 /* HealthMetric.swift in Sources */,
+				BF0000010000000000000005 /* Medication.swift in Sources */,
+				BF0000010000000000000006 /* AppTheme.swift in Sources */,
+				BF0000010000000000000007 /* LiquidGlassComponents.swift in Sources */,
+				BF0000010000000000000008 /* MainTabView.swift in Sources */,
+				BF0000010000000000000009 /* DashboardView.swift in Sources */,
+				BF000001000000000000000A /* ParentsListView.swift in Sources */,
+				BF000001000000000000000B /* ParentDetailView.swift in Sources */,
+				BF000001000000000000000C /* ParentFormView.swift in Sources */,
+				BF000001000000000000000D /* ChartsView.swift in Sources */,
+				BF000001000000000000000E /* MedicationsView.swift in Sources */,
+				BF000001000000000000000F /* AddMedicationView.swift in Sources */,
+				BF0000010000000000000010 /* QuickLogView.swift in Sources */,
+				BF0000010000000000000011 /* SampleData.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		BC0000010000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		BC0000010000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		BC0000010000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ParentsHealth/Info.plist;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.widgetsflow.parentshealth;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BC0000010000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ParentsHealth/Info.plist;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.widgetsflow.parentshealth;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CL0000010000000000000001 /* Build configuration list for PBXProject "ParentsHealth" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC0000010000000000000001 /* Debug */,
+				BC0000010000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CL0000010000000000000002 /* Build configuration list for PBXNativeTarget "ParentsHealth" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC0000010000000000000003 /* Debug */,
+				BC0000010000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = PR0000010000000000000001 /* Project object */;
+}
