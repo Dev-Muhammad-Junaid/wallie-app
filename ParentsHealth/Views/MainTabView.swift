@@ -33,12 +33,11 @@ enum AppTab: String, CaseIterable, Identifiable {
 
 struct MainTabView: View {
     @Query(sort: \ParentProfile.name) private var parents: [ParentProfile]
+    @EnvironmentObject private var parentStore: SelectedParentStore
     @State private var selectedTab: AppTab = .dashboard
     @State private var showQuickLog = false
     @State private var showImportLab = false
     @State private var showSettings = false
-
-    private var selectedParent: ParentProfile? { parents.first }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -83,7 +82,7 @@ struct MainTabView: View {
             QuickLogView()
         }
         .sheet(isPresented: $showImportLab) {
-            if let parent = selectedParent {
+            if let parent = parentStore.parent(from: parents) {
                 ImportLabReportView(parent: parent)
             }
         }
@@ -92,6 +91,7 @@ struct MainTabView: View {
         }
         .preferredColorScheme(.dark)
         .task {
+            parentStore.ensureSelection(from: parents)
             await NotificationService.shared.refreshAuthorizationStatus()
             if AppSettings.notificationsEnabled, NotificationService.shared.isAuthorized {
                 await NotificationService.shared.rescheduleAll(parents: parents)
@@ -131,5 +131,6 @@ struct MainTabView: View {
 
 #Preview {
     MainTabView()
+        .environmentObject(SelectedParentStore())
         .modelContainer(SampleData.previewContainer)
 }

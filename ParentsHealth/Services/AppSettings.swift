@@ -25,4 +25,24 @@ enum AppSettings {
         }
         set { UserDefaults.standard.set(newValue, forKey: notificationsEnabledKey) }
     }
+
+    private static let useRemoteLabAPIKey = "useRemoteLabAPI"
+    private static let labAPIEndpointKey = "labAPIEndpoint"
+    private static let labAPIKeyKey = "labAPIKey"
+
+    /// When true and endpoint is set, lab analysis tries your API first (falls back to on-device).
+    static var useRemoteLabAPI: Bool {
+        get { UserDefaults.standard.bool(forKey: useRemoteLabAPIKey) }
+        set { UserDefaults.standard.set(newValue, forKey: useRemoteLabAPIKey) }
+    }
+
+    static var labAPIEndpoint: String? {
+        get { UserDefaults.standard.string(forKey: labAPIEndpointKey) }
+        set { UserDefaults.standard.set(newValue, forKey: labAPIEndpointKey) }
+    }
+
+    static var labAPIKey: String {
+        get { UserDefaults.standard.string(forKey: labAPIKeyKey) ?? "" }
+        set { UserDefaults.standard.set(newValue, forKey: labAPIKeyKey) }
+    }
 }

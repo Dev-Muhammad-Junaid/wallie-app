@@ -17,10 +17,46 @@ struct SettingsView: View {
     @State private var showShareSheet = false
     @State private var shareItems: [Any] = []
     @State private var statusMessage = ""
+    @State private var useRemoteLabAPI = AppSettings.useRemoteLabAPI
+    @State private var labAPIEndpoint = AppSettings.labAPIEndpoint ?? ""
+    @State private var labAPIKey = AppSettings.labAPIKey
 
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    Label("On-device by default", systemImage: "lock.shield")
+                    Text("Lab photos are OCR'd on your phone. When you add an API endpoint below, analysis tries your server first and falls back to on-device parsing.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } header: {
+                    Text("Lab Report AI")
+                }
+
+                Section("Remote AI API (optional)") {
+                    Toggle("Use API when available", isOn: $useRemoteLabAPI)
+                        .onChange(of: useRemoteLabAPI) { _, value in
+                            AppSettings.useRemoteLabAPI = value
+                        }
+
+                    TextField("API Endpoint URL", text: $labAPIEndpoint)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .keyboardType(.URL)
+                        .onChange(of: labAPIEndpoint) { _, value in
+                            AppSettings.labAPIEndpoint = value.isEmpty ? nil : value
+                        }
+
+                    SecureField("API Key (optional)", text: $labAPIKey)
+                        .onChange(of: labAPIKey) { _, value in
+                            AppSettings.labAPIKey = value
+                        }
+
+                    Text("Expected JSON: { results: [{ testKey, testName, value, unit, referenceRange, isAbnormal }], labDate?, insights? }")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+
                 Section("Notifications") {
                     Toggle("Medication Reminders", isOn: $notificationsEnabled)
                         .onChange(of: notificationsEnabled) { _, enabled in

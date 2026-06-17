@@ -1,6 +1,7 @@
 import Foundation
 
 struct ParsedLabResult: Equatable {
+    let testKey: LabTestKey
     let testName: String
     let value: Double
     let unit: String
@@ -10,35 +11,35 @@ struct ParsedLabResult: Equatable {
 
 enum LabReportParser {
     private struct TestPattern {
-        let names: [String]
+        let key: LabTestKey
         let unit: String
         let normalRange: ClosedRange<Double>
         let highIsBad: Bool
     }
 
     private static let patterns: [TestPattern] = [
-        TestPattern(names: ["glucose", "fasting glucose", "blood glucose"], unit: "mg/dL", normalRange: 70...100, highIsBad: true),
-        TestPattern(names: ["hba1c", "a1c", "hemoglobin a1c"], unit: "%", normalRange: 4.0...5.7, highIsBad: true),
-        TestPattern(names: ["cholesterol", "total cholesterol"], unit: "mg/dL", normalRange: 0...200, highIsBad: true),
-        TestPattern(names: ["ldl", "ldl cholesterol"], unit: "mg/dL", normalRange: 0...100, highIsBad: true),
-        TestPattern(names: ["hdl", "hdl cholesterol"], unit: "mg/dL", normalRange: 40...100, highIsBad: false),
-        TestPattern(names: ["triglycerides"], unit: "mg/dL", normalRange: 0...150, highIsBad: true),
-        TestPattern(names: ["creatinine"], unit: "mg/dL", normalRange: 0.6...1.2, highIsBad: true),
-        TestPattern(names: ["hemoglobin", "hgb"], unit: "g/dL", normalRange: 12.0...17.5, highIsBad: false),
-        TestPattern(names: ["wbc", "white blood cell"], unit: "K/uL", normalRange: 4.5...11.0, highIsBad: true),
-        TestPattern(names: ["platelet", "plt"], unit: "K/uL", normalRange: 150...400, highIsBad: true),
-        TestPattern(names: ["tsh"], unit: "mIU/L", normalRange: 0.4...4.0, highIsBad: true),
-        TestPattern(names: ["vitamin d", "25-oh vitamin d"], unit: "ng/mL", normalRange: 30...100, highIsBad: false),
+        TestPattern(key: .glucose, unit: "mg/dL", normalRange: 70...100, highIsBad: true),
+        TestPattern(key: .hba1c, unit: "%", normalRange: 4.0...5.7, highIsBad: true),
+        TestPattern(key: .cholesterol, unit: "mg/dL", normalRange: 0...200, highIsBad: true),
+        TestPattern(key: .ldl, unit: "mg/dL", normalRange: 0...100, highIsBad: true),
+        TestPattern(key: .hdl, unit: "mg/dL", normalRange: 40...100, highIsBad: false),
+        TestPattern(key: .triglycerides, unit: "mg/dL", normalRange: 0...150, highIsBad: true),
+        TestPattern(key: .creatinine, unit: "mg/dL", normalRange: 0.6...1.2, highIsBad: true),
+        TestPattern(key: .hemoglobin, unit: "g/dL", normalRange: 12.0...17.5, highIsBad: false),
+        TestPattern(key: .wbc, unit: "K/uL", normalRange: 4.5...11.0, highIsBad: true),
+        TestPattern(key: .platelet, unit: "K/uL", normalRange: 150...400, highIsBad: true),
+        TestPattern(key: .tsh, unit: "mIU/L", normalRange: 0.4...4.0, highIsBad: true),
+        TestPattern(key: .vitaminD, unit: "ng/mL", normalRange: 30...100, highIsBad: false),
     ]
 
     static func parse(text: String) -> [ParsedLabResult] {
         let normalized = text.lowercased()
         var results: [ParsedLabResult] = []
-        var foundNames: Set<String> = []
+        var foundKeys: Set<LabTestKey> = []
 
         for pattern in patterns {
-            for name in pattern.names {
-                guard !foundNames.contains(name) else { continue }
+            guard !foundKeys.contains(pattern.key) else { continue }
+            for name in pattern.key.aliases {
                 if let value = extractValue(near: name, in: normalized) {
                     let isAbnormal: Bool
                     if pattern.highIsBad {
@@ -49,19 +50,20 @@ enum LabReportParser {
 
                     let rangeText = "\(formatValue(pattern.normalRange.lowerBound))–\(formatValue(pattern.normalRange.upperBound)) \(pattern.unit)"
                     results.append(ParsedLabResult(
-                        testName: name.capitalized,
+                        testKey: pattern.key,
+                        testName: pattern.key.title,
                         value: value,
                         unit: pattern.unit,
                         referenceRange: rangeText,
                         isAbnormal: isAbnormal
                     ))
-                    foundNames.insert(name)
+                    foundKeys.insert(pattern.key)
                     break
                 }
             }
         }
 
-        return results.sorted { $0.testName < $1.testName }
+        return results.sorted { $0.testKey.title < $1.testKey.title }
     }
 
     static func generateInsights(results: [ParsedLabResult], parentName: String) -> String {
@@ -81,13 +83,13 @@ enum LabReportParser {
             }
         }
 
-        if abnormal.contains(where: { $0.testName.lowercased().contains("glucose") || $0.testName.lowercased().contains("a1c") }) {
+        if abnormal.contains(where: { $0.testKey == .glucose || $0.testKey == .hba1c }) {
             lines.append("Consider discussing blood sugar management with their doctor.")
         }
-        if abnormal.contains(where: { $0.testName.lowercased().contains("cholesterol") || $0.testName.lowercased().contains("ldl") }) {
+        if abnormal.contains(where: { [.cholesterol, .ldl, .hdl, .triglycerides].contains($0.testKey) }) {
             lines.append("Lipid panel results may warrant dietary or medication review.")
         }
-        if abnormal.contains(where: { $0.testName.lowercased().contains("creatinine") }) {
+        if abnormal.contains(where: { $0.testKey == .creatinine }) {
             lines.append("Kidney function markers should be reviewed with a physician.")
         }
 

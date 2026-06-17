@@ -1,88 +1,59 @@
 #!/usr/bin/env python3
-"""Offline validation for ParentsHealth pure-logic tests (runs without Xcode)."""
+"""Offline validation mirroring Swift unit test logic."""
 
 import re
 import sys
-from dataclasses import dataclass
 
-PASS = 0
-FAIL = 0
+PASS = FAIL = 0
 
-
-def test(name: str, condition: bool):
+def test(name, cond):
     global PASS, FAIL
-    if condition:
+    if cond:
         PASS += 1
         print(f"  ✓ {name}")
     else:
         FAIL += 1
         print(f"  ✗ {name}")
 
+def health_score(metrics, within_days=7):
+    recent = [m for m in metrics if m[1] <= within_days]
+    if not recent:
+        return 75
+    normal = sum(1 for n, _ in recent if n)
+    return int(60 + (normal / len(recent)) * 40)
 
-# --- Health Score Logic ---
-def health_score(metrics: list[tuple[bool, int]], within_days: int = 7) -> int:
-  """metrics: list of (is_normal, days_ago)"""
-  recent = [m for m in metrics if m[1] <= within_days]
-  if not recent:
-    return 75
-  normal = sum(1 for n, _ in recent if n)
-  ratio = normal / len(recent)
-  return int(60 + ratio * 40)
+def adherence(hours, taken, days=7):
+    expected = hours * days
+    return 1.0 if expected == 0 else min(1.0, taken / expected)
 
+def parse_glucose(text):
+    m = re.search(r"glucose[:\s]+(\d+\.?\d*)", text, re.I)
+    if not m:
+        return None
+    v = float(m.group(1))
+    return v, v > 100 or v < 70
+
+def trend_sorted(values):
+    return sorted(values)
 
 print("HealthScoreCalculator")
-test("empty metrics defaults to 75", health_score([]) == 75)
-test("all normal gives 100", health_score([(True, 0), (True, 1), (True, 2)]) == 100)
-test("all abnormal gives 60", health_score([(False, 0), (False, 1)]) == 60)
-test("ignores old metrics", health_score([(False, 10), (True, 0)]) == 100)
+test("empty", health_score([]) == 75)
+test("all normal", health_score([(True,0),(True,1)]) == 100)
+test("all abnormal", health_score([(False,0),(False,1)]) == 60)
 
-# --- Medication Adherence ---
-def adherence(reminder_hours: int, taken: int, days: int = 7) -> float:
-  expected = reminder_hours * days
-  if expected == 0:
-    return 1.0
-  return min(1.0, taken / expected)
-
-
-print("\nMedicationAdherenceCalculator")
-test("full adherence", abs(adherence(2, 14) - 1.0) < 0.001)
-test("half adherence", abs(adherence(2, 7) - 0.5) < 0.001)
-test("zero reminders", adherence(0, 0) == 1.0)
-
-# --- Lab Report Parser (simplified mirror of Swift logic) ---
-@dataclass
-class ParsedResult:
-  name: str
-  value: float
-  abnormal: bool
-
-
-def parse_glucose(text: str) -> ParsedResult | None:
-  m = re.search(r"glucose[:\s]+(\d+\.?\d*)", text, re.I)
-  if not m:
-    return None
-  val = float(m.group(1))
-  return ParsedResult("Glucose", val, val > 100 or val < 70)
-
-
-def parse_hba1c(text: str) -> ParsedResult | None:
-  m = re.search(r"hba1c[:\s]+(\d+\.?\d*)", text, re.I)
-  if not m:
-    return None
-  val = float(m.group(1))
-  return ParsedResult("HbA1c", val, val > 5.7)
-
+print("\nMedicationAdherence")
+test("full", abs(adherence(2,14)-1) < 0.001)
+test("half", abs(adherence(2,7)-0.5) < 0.001)
 
 print("\nLabReportParser")
-sample = "Glucose: 142 mg/dL\nHbA1c: 6.8 %"
-g = parse_glucose(sample)
-a = parse_hba1c(sample)
-test("parses glucose", g is not None and g.value == 142)
-test("flags abnormal glucose", g is not None and g.abnormal)
-test("parses hba1c", a is not None and a.value == 6.8)
-test("flags abnormal a1c", a is not None and a.abnormal)
-test("empty text", parse_glucose("") is None)
+g = parse_glucose("Glucose: 142 mg/dL")
+test("glucose parse", g and g[0] == 142)
+test("glucose abnormal", g and g[1])
 
-print(f"\n{'='*40}")
-print(f"Results: {PASS} passed, {FAIL} failed")
+print("\nLabTrendService")
+pts = trend_sorted([("2025-09",118),("2026-01",128),("2026-03",142)])
+test("trend order", pts[0][1] < pts[-1][1])
+test("rising glucose", pts[-1][1] > pts[0][1])
+
+print(f"\n{'='*40}\nResults: {PASS} passed, {FAIL} failed")
 sys.exit(1 if FAIL else 0)

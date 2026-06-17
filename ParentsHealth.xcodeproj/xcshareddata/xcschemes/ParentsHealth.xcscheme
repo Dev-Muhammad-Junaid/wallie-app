@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "1054300A31E54C7FB5CAD391"
+               BlueprintIdentifier = "527800EA67844D9681810502"
                BuildableName = "ParentsHealth.app"
                BlueprintName = "ParentsHealth"
                ReferencedContainer = "container:ParentsHealth.xcodeproj">
@@ -34,7 +34,7 @@
             parallelizable = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BA7B53ABB96E4869B599753E"
+               BlueprintIdentifier = "A344739A77B44B0FB0D39164"
                BuildableName = "ParentsHealthTests.xctest"
                BlueprintName = "ParentsHealthTests"
                ReferencedContainer = "container:ParentsHealth.xcodeproj">
@@ -45,7 +45,7 @@
             parallelizable = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "8210E28330B54909A15706DC"
+               BlueprintIdentifier = "AC1917295BE94245B09DC4B6"
                BuildableName = "ParentsHealthUITests.xctest"
                BlueprintName = "ParentsHealthUITests"
                ReferencedContainer = "container:ParentsHealth.xcodeproj">
@@ -67,7 +67,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "1054300A31E54C7FB5CAD391"
+            BlueprintIdentifier = "527800EA67844D9681810502"
             BuildableName = "ParentsHealth.app"
             BlueprintName = "ParentsHealth"
             ReferencedContainer = "container:ParentsHealth.xcodeproj">
@@ -84,7 +84,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "1054300A31E54C7FB5CAD391"
+            BlueprintIdentifier = "527800EA67844D9681810502"
             BuildableName = "ParentsHealth.app"
             BlueprintName = "ParentsHealth"
             ReferencedContainer = "container:ParentsHealth.xcodeproj">

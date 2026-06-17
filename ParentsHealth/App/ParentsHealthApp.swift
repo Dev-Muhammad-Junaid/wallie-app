@@ -30,6 +30,7 @@ struct ParentsHealthApp: App {
     var body: some Scene {
         WindowGroup {
             MainTabView()
+                .environmentObject(SelectedParentStore())
                 .onAppear {
                     if !Self.isUITesting {
                         SampleData.seedIfNeeded(context: sharedModelContainer.mainContext)

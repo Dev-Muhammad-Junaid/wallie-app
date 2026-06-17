@@ -10,14 +10,14 @@ final class LabReportParserTests: XCTestCase {
         """
         let results = LabReportParser.parse(text: text)
         XCTAssertFalse(results.isEmpty)
-        XCTAssertTrue(results.contains { $0.testName.lowercased().contains("glucose") })
-        XCTAssertTrue(results.contains { $0.testName.lowercased().contains("a1c") || $0.testName.lowercased().contains("hba1c") })
+        XCTAssertTrue(results.contains { $0.testKey == .glucose })
+        XCTAssertTrue(results.contains { $0.testKey == .hba1c })
     }
 
     func testFlagsAbnormalGlucose() {
         let text = "Glucose: 180 mg/dL"
         let results = LabReportParser.parse(text: text)
-        let glucose = results.first { $0.testName.lowercased().contains("glucose") }
+        let glucose = results.first { $0.testKey == .glucose }
         XCTAssertEqual(glucose?.isAbnormal, true)
     }
 
@@ -34,7 +34,14 @@ final class LabReportParserTests: XCTestCase {
 
     func testGenerateInsightsMentionsAbnormal() {
         let results = [
-            ParsedLabResult(testName: "Glucose", value: 180, unit: "mg/dL", referenceRange: "70–100 mg/dL", isAbnormal: true)
+            ParsedLabResult(
+                testKey: .glucose,
+                testName: "Glucose",
+                value: 180,
+                unit: "mg/dL",
+                referenceRange: "70–100 mg/dL",
+                isAbnormal: true
+            )
         ]
         let insight = LabReportParser.generateInsights(results: results, parentName: "Margaret")
         XCTAssertTrue(insight.contains("Margaret"))

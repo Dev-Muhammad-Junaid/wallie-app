@@ -56,4 +56,15 @@ final class ParentsHealthUITests: XCTestCase {
             XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 3))
         }
     }
+
+    func testChartsLabTrendsSegmentExists() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["UI_TESTING"]
+        app.launch()
+
+        app.staticTexts["Charts"].tap()
+        XCTAssertTrue(app.navigationBars["Charts"].waitForExistence(timeout: 3))
+        app.staticTexts["Lab Trends"].tap()
+        XCTAssertTrue(app.staticTexts["Lab Trends"].exists)
+    }
 }

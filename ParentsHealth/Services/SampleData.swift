@@ -127,26 +127,72 @@ enum SampleData {
             context.insert(log)
         }
 
-        let sampleText = """
-        Lab Report Date: 03/15/2026
-        Glucose: 142 mg/dL
-        HbA1c: 6.8 %
-        Cholesterol: 215 mg/dL
-        LDL: 130 mg/dL
-        HDL: 45 mg/dL
-        Creatinine: 1.0 mg/dL
-        """
-        let parsed = LabReportParser.parse(text: sampleText)
+        insertLabReport(
+            context: context,
+            parent: mom,
+            title: "Annual Panel · Mar 2026",
+            text: """
+            Lab Report Date: 03/15/2026
+            Glucose: 142 mg/dL
+            HbA1c: 6.8 %
+            Cholesterol: 215 mg/dL
+            LDL: 130 mg/dL
+            HDL: 45 mg/dL
+            Creatinine: 1.0 mg/dL
+            """,
+            labDate: Calendar.current.date(from: DateComponents(year: 2026, month: 3, day: 15))!
+        )
+
+        insertLabReport(
+            context: context,
+            parent: mom,
+            title: "Follow-up · Jan 2026",
+            text: """
+            Date: 01/10/2026
+            Glucose: 128 mg/dL
+            HbA1c: 6.4 %
+            Cholesterol: 198 mg/dL
+            LDL: 118 mg/dL
+            """,
+            labDate: Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 10))!
+        )
+
+        insertLabReport(
+            context: context,
+            parent: mom,
+            title: "Baseline · Sep 2025",
+            text: """
+            Date: 09/05/2025
+            Glucose: 118 mg/dL
+            HbA1c: 6.1 %
+            Cholesterol: 190 mg/dL
+            LDL: 110 mg/dL
+            """,
+            labDate: Calendar.current.date(from: DateComponents(year: 2025, month: 9, day: 5))!
+        )
+    }
+
+    @MainActor
+    private static func insertLabReport(
+        context: ModelContext,
+        parent: ParentProfile,
+        title: String,
+        text: String,
+        labDate: Date
+    ) {
+        let parsed = LabReportParser.parse(text: text)
         let report = LabReport(
-            title: "Annual Panel",
-            rawText: sampleText,
-            labDate: LabReportParser.extractLabDate(from: sampleText),
-            summaryInsight: LabReportParser.generateInsights(results: parsed, parentName: mom.name),
-            parent: mom
+            title: title,
+            rawText: text,
+            labDate: labDate,
+            summaryInsight: LabReportParser.generateInsights(results: parsed, parentName: parent.name),
+            analysisProvider: "On-Device",
+            parent: parent
         )
         context.insert(report)
         for item in parsed {
             context.insert(LabResult(
+                testKey: item.testKey.rawValue,
                 testName: item.testName,
                 value: item.value,
                 unit: item.unit,
@@ -167,6 +213,7 @@ enum SampleData {
         )
         for item in parsed {
             report.results.append(LabResult(
+                testKey: item.testKey.rawValue,
                 testName: item.testName,
                 value: item.value,
                 unit: item.unit,

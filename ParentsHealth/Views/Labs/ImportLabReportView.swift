@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import PhotosUI
 
+/// Fast lab import: photo or paste → preview → one-tap save. No long forms.
 struct ImportLabReportView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -10,130 +11,205 @@ struct ImportLabReportView: View {
 
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var selectedImage: UIImage?
-    @State private var manualText = ""
-    @State private var title = ""
+    @State private var pastedText = ""
     @State private var isProcessing = false
     @State private var errorMessage: String?
+    @State private var preview: LabAnalysisResult?
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Report") {
-                    TextField("Title (e.g. Annual Panel)", text: $title)
-                }
-
-                Section("Import from Photo") {
-                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                        Label(selectedImage == nil ? "Choose Lab Report Photo" : "Change Photo", systemImage: "camera.viewfinder")
-                    }
-                    .onChange(of: selectedPhoto) { _, newItem in
-                        Task { await loadImage(from: newItem) }
+            ScrollView {
+                VStack(alignment: .leading, spacing: AppTheme.sectionSpacing) {
+                    if let preview {
+                        previewSection(preview)
+                    } else {
+                        inputSection
                     }
 
-                    if let selectedImage {
-                        Image(uiImage: selectedImage)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxHeight: 180)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                }
-
-                Section("Or Paste Text") {
-                    TextField("Paste lab report text", text: $manualText, axis: .vertical)
-                        .lineLimit(4...10)
-                }
-
-                if let errorMessage {
-                    Section {
+                    if let errorMessage {
                         Text(errorMessage)
-                            .foregroundStyle(.red)
                             .font(.caption)
+                            .foregroundStyle(AppTheme.warmCoral)
+                            .padding(.horizontal, 4)
                     }
                 }
+                .padding(20)
             }
-            .navigationTitle("Import Lab Report")
+            .background(HealthGradientBackground())
+            .navigationTitle("Add Lab Report")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Analyze") {
-                        Task { await analyzeAndSave() }
+                if preview != nil {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") { savePreview() }
                     }
-                    .disabled(isProcessing || !canAnalyze)
                 }
             }
             .overlay {
                 if isProcessing {
-                    ProgressView("Analyzing on device…")
-                        .padding()
-                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    ProgressView("Analyzing…")
+                        .padding(20)
+                        .liquidGlass(cornerRadius: 16)
                 }
             }
         }
     }
 
-    private var canAnalyze: Bool {
-        selectedImage != nil || !manualText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    private var inputSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            SectionHeader(
+                title: "Quick import for \(parent.name)",
+                subtitle: "Snap a photo or paste text — we'll extract values automatically"
+            )
+
+            PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                GlassCard {
+                    HStack(spacing: 14) {
+                        Image(systemName: "camera.viewfinder")
+                            .font(.title2)
+                            .foregroundStyle(AppTheme.softMint)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Take or choose photo")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.white)
+                            Text("On-device OCR — nothing leaves your phone")
+                                .font(.caption)
+                                .foregroundStyle(.white.opacity(0.5))
+                        }
+                        Spacer()
+                    }
+                }
+            }
+            .onChange(of: selectedPhoto) { _, item in
+                Task { await loadAndAnalyzePhoto(item) }
+            }
+
+            if let selectedImage {
+                Image(uiImage: selectedImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxHeight: 160)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+            }
+
+            GlassCard {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Or paste report text")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white)
+                    TextField("Glucose: 110 mg/dL, HbA1c: 5.8%…", text: $pastedText, axis: .vertical)
+                        .lineLimit(3...8)
+                        .foregroundStyle(.white)
+                }
+            }
+
+            QuickSaveBar(title: "Analyze", isEnabled: canAnalyze && !isProcessing) {
+                Task { await analyzeText() }
+            }
+        }
     }
 
-    private func loadImage(from item: PhotosPickerItem?) async {
+    private func previewSection(_ result: LabAnalysisResult) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            GlassCard {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Label("AI Insights", systemImage: "sparkles")
+                            .font(.sectionHeadline)
+                            .foregroundStyle(AppTheme.softMint)
+                        Spacer()
+                        Text(result.providerName)
+                            .font(.caption2)
+                            .foregroundStyle(.white.opacity(0.45))
+                    }
+                    Text(result.insights)
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.85))
+                }
+            }
+
+            GlassCard {
+                VStack(alignment: .leading, spacing: 12) {
+                    SectionHeader(
+                        title: "\(result.results.count) values found",
+                        subtitle: result.labDate.map { "Lab date: \($0.formatted(date: .abbreviated, time: .omitted))" }
+                    )
+                    ForEach(result.results, id: \.testKey) { item in
+                        HStack {
+                            Text(item.testName)
+                                .foregroundStyle(.white)
+                            Spacer()
+                            Text("\(format(item.value)) \(item.unit)")
+                                .font(.subheadline.weight(.semibold).monospacedDigit())
+                                .foregroundStyle(item.isAbnormal ? AppTheme.warmCoral : .white)
+                        }
+                    }
+                }
+            }
+
+            QuickSaveBar(title: "Save to \(parent.name)'s records", isEnabled: true) {
+                savePreview()
+            }
+
+            Button("Re-analyze") {
+                preview = nil
+                errorMessage = nil
+            }
+            .font(.caption)
+            .foregroundStyle(.white.opacity(0.55))
+            .frame(maxWidth: .infinity)
+        }
+    }
+
+    private var canAnalyze: Bool {
+        selectedImage != nil || !pastedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private func loadAndAnalyzePhoto(_ item: PhotosPickerItem?) async {
         guard let item,
               let data = try? await item.loadTransferable(type: Data.self),
               let image = UIImage(data: data) else { return }
         selectedImage = image
+        await analyze(image: image)
     }
 
-    private func analyzeAndSave() async {
+    private func analyzeText() async {
+        let text = pastedText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
         isProcessing = true
         errorMessage = nil
         defer { isProcessing = false }
-
         do {
-            var rawText = manualText.trimmingCharacters(in: .whitespacesAndNewlines)
-            if let selectedImage, rawText.isEmpty {
-                rawText = try await LabReportOCRService.recognizeText(from: selectedImage)
-            }
-
-            guard !rawText.isEmpty else {
-                errorMessage = "No text found. Try a clearer photo or paste text manually."
-                return
-            }
-
-            let parsed = LabReportParser.parse(text: rawText)
-            let labDate = LabReportParser.extractLabDate(from: rawText)
-            let insight = LabReportParser.generateInsights(results: parsed, parentName: parent.name)
-            let reportTitle = title.isEmpty
-                ? "Lab Report \(Date().formatted(date: .abbreviated, time: .omitted))"
-                : title
-
-            let report = LabReport(
-                title: reportTitle,
-                rawText: rawText,
-                labDate: labDate,
-                summaryInsight: insight,
-                parent: parent
-            )
-            modelContext.insert(report)
-
-            for parsedResult in parsed {
-                let result = LabResult(
-                    testName: parsedResult.testName,
-                    value: parsedResult.value,
-                    unit: parsedResult.unit,
-                    referenceRange: parsedResult.referenceRange,
-                    isAbnormal: parsedResult.isAbnormal,
-                    labReport: report
-                )
-                modelContext.insert(result)
-            }
-
-            dismiss()
+            preview = try await LabAnalysisService.provider().analyze(text: text, parentName: parent.name)
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    private func analyze(image: UIImage) async {
+        isProcessing = true
+        errorMessage = nil
+        defer { isProcessing = false }
+        do {
+            preview = try await LabAnalysisService.provider().analyze(image: image, parentName: parent.name)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func savePreview() {
+        guard let preview else { return }
+        _ = LabReportRepository.save(analysis: preview, parent: parent, title: nil, context: modelContext)
+        dismiss()
+    }
+
+    private func format(_ value: Double) -> String {
+        if value == value.rounded() { return "\(Int(value))" }
+        return String(format: "%.1f", value)
     }
 }
 
