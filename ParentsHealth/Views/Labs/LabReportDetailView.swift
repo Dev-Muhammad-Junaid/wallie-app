@@ -40,9 +40,9 @@ struct LabReportDetailView: View {
                             subtitle: "Compared to previous report when available"
                         )
 
-                        ForEach(report.results.sorted(by: { ($0.key?.title ?? $0.testName) < ($1.key?.title ?? $1.testName) }), id: \.id) { result in
+                        ForEach(sortedResults, id: \.id) { result in
                             resultRow(result)
-                            if result.id != report.results.last?.id {
+                            if result.id != sortedResults.last?.id {
                                 Divider().overlay(Color.white.opacity(0.1))
                             }
                         }
@@ -64,12 +64,16 @@ struct LabReportDetailView: View {
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.bottom, 40)
+            .scrollBottomClearance()
         }
         .background(HealthGradientBackground())
         .navigationTitle(report.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+    }
+
+    private var sortedResults: [LabResult] {
+        report.results.sorted { ($0.key?.title ?? $0.testName) < ($1.key?.title ?? $1.testName) }
     }
 
     @ViewBuilder
@@ -87,7 +91,7 @@ struct LabReportDetailView: View {
                     let delta = result.value - previous.value
                     Text("vs prior: \(format(delta, unit: result.unit))")
                         .font(.caption2)
-                        .foregroundStyle(delta > 0 ? AppTheme.warmCoral.opacity(0.85) : AppTheme.softMint)
+                        .foregroundStyle((result.key ?? .glucose).deltaColor(for: delta))
                 }
             }
             Spacer()

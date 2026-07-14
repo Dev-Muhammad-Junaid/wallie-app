@@ -36,10 +36,8 @@
 	<string>ParentsHealth reads blood pressure, weight, heart rate, and glucose from HealthKit to keep your parents' health records up to date.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>ParentsHealth needs photo access to import lab report images for on-device analysis.</string>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>fetch</string>
-	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>ParentsHealth uses the camera to capture lab report photos for on-device OCR analysis.</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

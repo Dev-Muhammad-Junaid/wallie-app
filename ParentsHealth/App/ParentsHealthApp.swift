@@ -31,6 +31,7 @@ struct ParentsHealthApp: App {
         WindowGroup {
             MainTabView()
                 .environmentObject(SelectedParentStore())
+                .environmentObject(AppNavigationStore())
                 .onAppear {
                     if !Self.isUITesting {
                         SampleData.seedIfNeeded(context: sharedModelContainer.mainContext)

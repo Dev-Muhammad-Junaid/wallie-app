@@ -15,6 +15,17 @@ enum ReportExportService {
         lines.append("Health Score: \(parent.healthScore())/100")
         lines.append("")
 
+        let alerts = HealthAlertService.alerts(for: parent)
+        lines.append("── Active Health Alerts ──")
+        if alerts.isEmpty {
+            lines.append("All tracked vitals and labs within range.")
+        } else {
+            for alert in alerts {
+                lines.append("! \(alert.title): \(alert.valueText) — \(alert.severity.title)")
+            }
+        }
+        lines.append("")
+
         lines.append("── Recent Vitals (last 30 days) ──")
         let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date())!
         let recentMetrics = parent.metrics
@@ -27,6 +38,9 @@ enum ReportExportService {
             for metric in recentMetrics.prefix(20) {
                 let status = metric.isInNormalRange ? "✓" : "!"
                 lines.append("\(status) \(metric.recordedAt.formatted(date: .abbreviated, time: .omitted)) — \(metric.type.title): \(metric.displayValue) \(metric.type.unit)")
+            }
+            if recentMetrics.count > 20 {
+                lines.append("… \(recentMetrics.count - 20) more readings not shown")
             }
         }
 

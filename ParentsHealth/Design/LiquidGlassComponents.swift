@@ -113,18 +113,47 @@ struct MetricChip: View {
 
 struct GlassFAB: View {
     let icon: String
+    var accessibilityLabel: String = "Add"
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: icon)
-                .font(.title2.weight(.semibold))
-                .foregroundStyle(.white)
-                .frame(width: 58, height: 58)
-                .liquidGlass(cornerRadius: 29, interactive: true)
-                .shadow(color: AppTheme.warmCoral.opacity(0.35), radius: 12, y: 6)
+            ZStack {
+                fabBackground
+                Image(systemName: icon)
+                    .font(.title2.weight(.semibold))
+                    .foregroundStyle(.white)
+            }
+            .frame(width: 58, height: 58)
+            .contentShape(Circle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(GlassFABButtonStyle())
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    @ViewBuilder
+    private var fabBackground: some View {
+        if #available(iOS 26.0, *) {
+            Circle()
+                .fill(.clear)
+                .glassEffect(.regular, in: .circle)
+        } else {
+            Circle()
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    Circle()
+                        .strokeBorder(Color.white.opacity(0.35), lineWidth: 0.5)
+                )
+        }
+    }
+}
+
+private struct GlassFABButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.94 : 1)
+            .opacity(configuration.isPressed ? 0.9 : 1)
+            .shadow(color: AppTheme.warmCoral.opacity(configuration.isPressed ? 0.2 : 0.35), radius: 12, y: 6)
     }
 }
 
@@ -158,6 +187,9 @@ struct HealthScoreRing: View {
     let score: Int
     var size: CGFloat = 120
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var animatedProgress: Double = 0
+
     private var progress: Double { Double(score) / 100.0 }
 
     var body: some View {
@@ -165,7 +197,7 @@ struct HealthScoreRing: View {
             Circle()
                 .stroke(Color.white.opacity(0.15), lineWidth: 10)
             Circle()
-                .trim(from: 0, to: progress)
+                .trim(from: 0, to: animatedProgress)
                 .stroke(
                     AngularGradient(
                         colors: [AppTheme.softMint, AppTheme.warmCoral],
@@ -178,11 +210,28 @@ struct HealthScoreRing: View {
                 Text("\(score)")
                     .font(.system(size: 32, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
+                    .contentTransition(.numericText())
                 Text("Health")
                     .font(.captionMuted)
                     .foregroundStyle(.white.opacity(0.7))
             }
         }
         .frame(width: size, height: size)
+        .onAppear {
+            updateProgress(animated: !reduceMotion)
+        }
+        .onChange(of: score) { _, _ in
+            updateProgress(animated: !reduceMotion)
+        }
+    }
+
+    private func updateProgress(animated: Bool) {
+        if animated {
+            withAnimation(.spring(response: 0.9, dampingFraction: 0.75)) {
+                animatedProgress = progress
+            }
+        } else {
+            animatedProgress = progress
+        }
     }
 }

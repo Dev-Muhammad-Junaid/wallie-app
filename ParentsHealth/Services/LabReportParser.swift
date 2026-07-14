@@ -41,21 +41,13 @@ enum LabReportParser {
             guard !foundKeys.contains(pattern.key) else { continue }
             for name in pattern.key.aliases {
                 if let value = extractValue(near: name, in: normalized) {
-                    let isAbnormal: Bool
-                    if pattern.highIsBad {
-                        isAbnormal = value > pattern.normalRange.upperBound || value < pattern.normalRange.lowerBound
-                    } else {
-                        isAbnormal = value < pattern.normalRange.lowerBound
-                    }
-
-                    let rangeText = "\(formatValue(pattern.normalRange.lowerBound))–\(formatValue(pattern.normalRange.upperBound)) \(pattern.unit)"
                     results.append(ParsedLabResult(
                         testKey: pattern.key,
                         testName: pattern.key.title,
                         value: value,
                         unit: pattern.unit,
-                        referenceRange: rangeText,
-                        isAbnormal: isAbnormal
+                        referenceRange: pattern.key.referenceRangeDescription,
+                        isAbnormal: pattern.key.isAbnormal(value)
                     ))
                     foundKeys.insert(pattern.key)
                     break

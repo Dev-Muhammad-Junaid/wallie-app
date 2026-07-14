@@ -2,10 +2,17 @@ import SwiftUI
 import SwiftData
 
 struct LabReportsView: View {
+    @Binding var showImport: Bool
+
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var parentStore: SelectedParentStore
+    @EnvironmentObject private var navigationStore: AppNavigationStore
     @Query(sort: \ParentProfile.name) private var parents: [ParentProfile]
-    @State private var showImport = false
+    @State private var reportToDelete: LabReport?
+
+    init(showImport: Binding<Bool> = .constant(false)) {
+        _showImport = showImport
+    }
 
     private var selectedParent: ParentProfile? {
         parentStore.parent(from: parents)
@@ -38,7 +45,7 @@ struct LabReportsView: View {
                                 .buttonStyle(.plain)
                                 .contextMenu {
                                     Button("Delete", role: .destructive) {
-                                        modelContext.delete(report)
+                                        reportToDelete = report
                                     }
                                 }
                             }
@@ -54,39 +61,44 @@ struct LabReportsView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 8)
-                .padding(.bottom, 120)
+                .scrollBottomClearance()
             }
             .navigationTitle("Lab Reports")
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { showImport = true } label: {
-                        Image(systemName: "plus.circle.fill")
-                    }
-                    .disabled(selectedParent == nil)
-                }
-            }
-        }
-        .sheet(isPresented: $showImport) {
-            if let parent = selectedParent {
-                ImportLabReportView(parent: parent)
-            }
         }
         .onAppear {
             parentStore.ensureSelection(from: parents)
+        }
+        .alert("Delete lab report?", isPresented: Binding(
+            get: { reportToDelete != nil },
+            set: { if !$0 { reportToDelete = nil } }
+        )) {
+            Button("Delete", role: .destructive) {
+                if let report = reportToDelete {
+                    modelContext.delete(report)
+                    FeedbackService.warning()
+                }
+                reportToDelete = nil
+            }
+            Button("Cancel", role: .cancel) { reportToDelete = nil }
+        } message: {
+            Text("This removes the report and its chart data for this visit.")
         }
     }
 
     private var howItWorksCard: some View {
         GlassCard(padding: 14) {
             VStack(alignment: .leading, spacing: 8) {
-                Label("How lab reports work", systemImage: "info.circle.fill")
+                Label("How import works", systemImage: "info.circle.fill")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppTheme.softMint)
-                Text("1. Import photo or paste text → 2. On-device AI extracts values → 3. Saved per parent → 4. Charts show trends over time.")
+                Text("1. Import photo or paste text → 2. On-device AI extracts values → 3. Preview and save → 4. Report appears below and in Charts (Lab Trends).")
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.6))
+                Text("After saving, check Settings → Data Overview for counts, or open the report to review each value.")
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.45))
             }
         }
     }
@@ -97,7 +109,17 @@ struct LabReportsView: View {
         if !keys.isEmpty {
             GlassCard {
                 VStack(alignment: .leading, spacing: 12) {
-                    SectionHeader(title: "Tracked markers", subtitle: "View full trends in Charts → Lab Trends")
+                    SectionHeader(title: "Tracked markers", subtitle: "Full trends in Charts")
+                    Button {
+                        navigationStore.openLabTrends(testKey: keys.first)
+                    } label: {
+                        Label("View lab trends in Charts", systemImage: "chart.xyaxis.line")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(AppTheme.softMint)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.bottom, 4)
+
                     ForEach(keys.prefix(4)) { key in
                         if let latest = LabTrendService.latestValue(for: parent, testKey: key) {
                             let points = LabTrendService.trendPoints(for: parent, testKey: key)
@@ -122,7 +144,7 @@ struct LabReportsView: View {
                                     if let delta = LabTrendService.delta(from: previous, to: latest) {
                                         Text(delta >= 0 ? "+\(format(delta))" : format(delta))
                                             .font(.caption2)
-                                            .foregroundStyle(delta > 0 ? AppTheme.warmCoral.opacity(0.9) : AppTheme.softMint)
+                                            .foregroundStyle(key.deltaColor(for: delta))
                                     }
                                 }
                             }
@@ -142,7 +164,7 @@ struct LabReportsView: View {
                 Text("No lab reports yet")
                     .font(.sectionHeadline)
                     .foregroundStyle(.white)
-                Text("Tap + to snap a photo or paste text. Values are saved and charted automatically.")
+                Text("Use the import button below to take a photo, choose from library, or paste text. Values are saved and charted automatically.")
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.55))
                     .multilineTextAlignment(.center)

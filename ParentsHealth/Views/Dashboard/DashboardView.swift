@@ -3,18 +3,14 @@ import SwiftData
 
 struct DashboardView: View {
     var onOpenSettings: () -> Void = {}
+    var onOpenCharts: (MetricType?) -> Void = { _ in }
+    var onOpenAlerts: () -> Void = {}
 
-    @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var parentStore: SelectedParentStore
     @Query(sort: \ParentProfile.name) private var parents: [ParentProfile]
-    @State private var selectedParentID: UUID?
-    @State private var showAlerts = false
 
     private var selectedParent: ParentProfile? {
-        if let id = selectedParentID {
-            return parents.first { $0.id == id }
-        }
-        return parents.first
+        parentStore.parent(from: parents)
     }
 
     var body: some View {
@@ -27,7 +23,7 @@ struct DashboardView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 12)
-                .padding(.bottom, 120)
+                .scrollBottomClearance()
             }
             .navigationBarHidden(true)
             .overlay(alignment: .topTrailing) {
@@ -45,15 +41,9 @@ struct DashboardView: View {
                 .padding(.trailing, 20)
                 .padding(.top, 8)
             }
-            .sheet(isPresented: $showAlerts) {
-                HealthAlertsView()
-                    .environmentObject(parentStore)
-            }
         }
         .onAppear {
-            if selectedParentID == nil {
-                selectedParentID = parents.first?.id
-            }
+            parentStore.ensureSelection(from: parents)
         }
     }
 
@@ -74,34 +64,35 @@ struct DashboardView: View {
     }
 
     private var parentChips: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 10) {
-                ForEach(parents) { parent in
-                    Button {
-                        withAnimation(.spring(response: 0.3)) {
-                            selectedParentID = parent.id
-                        }
-                    } label: {
-                        HStack(spacing: 8) {
-                            ParentAvatar(initials: parent.initials, hue: parent.avatarHue, size: 32)
-                            Text(parent.name)
-                                .font(.subheadline.weight(.semibold))
-                        }
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .liquidGlass(cornerRadius: 20, interactive: true)
-                        .opacity(selectedParent?.id == parent.id ? 1 : 0.65)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
+        ParentChipPicker(parents: parents, selectedParentID: $parentStore.parentID)
     }
 
     @ViewBuilder
     private var bentoGrid: some View {
-        if let parent = selectedParent {
+        Group {
+            if let parent = selectedParent {
+                parentDashboardContent(parent)
+            } else {
+                GlassCard {
+                    VStack(spacing: 12) {
+                        Image(systemName: "person.2.badge.plus")
+                            .font(.largeTitle)
+                            .foregroundStyle(AppTheme.softMint)
+                        Text("Add a parent profile to get started")
+                            .font(.sectionHeadline)
+                            .foregroundStyle(.white)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 24)
+                }
+            }
+        }
+        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: parentStore.parentID)
+    }
+
+    @ViewBuilder
+    private func parentDashboardContent(_ parent: ParentProfile) -> some View {
+        VStack(alignment: .leading, spacing: AppTheme.sectionSpacing) {
             HStack(alignment: .top, spacing: 14) {
                 GlassCard(padding: 16) {
                     VStack(alignment: .leading, spacing: 12) {
@@ -120,7 +111,7 @@ struct DashboardView: View {
                                 .font(.captionMuted)
                                 .foregroundStyle(.white.opacity(0.6))
                             Text("\(parent.age) yrs")
-                                .font(.title2.weight(.bold).rounded())
+                                .font(.system(.title2, design: .rounded).weight(.bold))
                                 .foregroundStyle(.white)
                         }
                     }
@@ -130,16 +121,17 @@ struct DashboardView: View {
                                 .font(.captionMuted)
                                 .foregroundStyle(.white.opacity(0.6))
                             Text(parent.bloodType)
-                                .font(.title2.weight(.bold).rounded())
+                                .font(.system(.title2, design: .rounded).weight(.bold))
                                 .foregroundStyle(.white)
                         }
                     }
                 }
                 .frame(width: 130)
             }
+            .transition(.opacity.combined(with: .move(edge: .leading)))
 
             DashboardAlertsSummary(parent: parent) {
-                showAlerts = true
+                onOpenAlerts()
             }
 
             GlassCard {
@@ -149,24 +141,40 @@ struct DashboardView: View {
                             .font(.sectionHeadline)
                             .foregroundStyle(.white)
                         Spacer()
-                        Text("Last 7 days")
-                            .font(.captionMuted)
-                            .foregroundStyle(.white.opacity(0.5))
+                        Button {
+                            onOpenCharts(nil)
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text("Charts")
+                                    .font(.captionMuted)
+                                Image(systemName: "chevron.right")
+                                    .font(.caption2.weight(.semibold))
+                            }
+                            .foregroundStyle(AppTheme.softMint)
+                        }
+                        .buttonStyle(.plain)
                     }
 
-                    if parent.latestMetrics.isEmpty {
-                        Text("No vitals logged yet. Tap + to add.")
+                    let recent = parent.recentMetrics(withinDays: 7)
+                    if recent.isEmpty {
+                        Text("No vitals in the last 7 days. Use the log button below.")
                             .font(.subheadline)
                             .foregroundStyle(.white.opacity(0.5))
                     } else {
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                            ForEach(parent.latestMetrics, id: \.id) { metric in
-                                MetricChip(
-                                    title: metric.type.title,
-                                    value: metric.displayValue,
-                                    unit: metric.type.unit,
-                                    color: AppTheme.metricColor(for: metric.type)
-                                )
+                            ForEach(recent, id: \.id) { metric in
+                                Button {
+                                    onOpenCharts(metric.type)
+                                } label: {
+                                    MetricChip(
+                                        title: metric.type.title,
+                                        value: metric.displayValue,
+                                        unit: metric.type.unit,
+                                        color: AppTheme.metricColor(for: metric.type)
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityHint("View \(metric.type.title) chart")
                             }
                         }
                     }
@@ -206,19 +214,6 @@ struct DashboardView: View {
                     }
                 }
             }
-        } else {
-            GlassCard {
-                VStack(spacing: 12) {
-                    Image(systemName: "person.2.badge.plus")
-                        .font(.largeTitle)
-                        .foregroundStyle(AppTheme.softMint)
-                    Text("Add a parent profile to get started")
-                        .font(.sectionHeadline)
-                        .foregroundStyle(.white)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 24)
-            }
         }
     }
 
@@ -235,7 +230,7 @@ struct DashboardView: View {
     private var alertsHeaderButton: some View {
         let count = selectedParent.map { HealthAlertService.alertCount(for: $0) } ?? 0
         Button {
-            showAlerts = true
+            onOpenAlerts()
         } label: {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: "bell.fill")

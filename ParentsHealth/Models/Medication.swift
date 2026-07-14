@@ -37,14 +37,31 @@ final class Medication {
 
     var todayLogs: [MedicationLog] {
         let start = Calendar.current.startOfDay(for: Date())
-        return logs.filter { $0.takenAt >= start }
+        return logs
+            .filter { $0.takenAt >= start }
+            .sorted { $0.takenAt < $1.takenAt }
+    }
+
+    /// Today's log for a specific reminder hour (slot), if any.
+    func todayLog(forHour hour: Int) -> MedicationLog? {
+        let calendar = Calendar.current
+        return todayLogs.last { calendar.component(.hour, from: $0.takenAt) == hour }
+    }
+
+    /// Reminder slots that still need a dose log today.
+    var pendingReminderHoursToday: [Int] {
+        reminderHours.filter { todayLog(forHour: $0) == nil }.sorted()
+    }
+
+    var takenSlotsToday: Int {
+        reminderHours.filter { todayLog(forHour: $0)?.status == .taken }.count
     }
 
     var adherenceThisWeek: Double {
         let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
         let taken = logs.filter { $0.takenAt >= weekAgo && $0.status == .taken }.count
         return MedicationAdherenceCalculator.adherence(
-            reminderHoursPerDay: reminderHours.count,
+            reminderHoursPerDay: max(reminderHours.count, 1),
             takenCount: taken
         )
     }

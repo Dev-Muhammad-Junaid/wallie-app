@@ -4,6 +4,7 @@ import SwiftData
 struct ParentFormView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var parentStore: SelectedParentStore
 
     var parent: ParentProfile?
 
@@ -95,7 +96,9 @@ struct ParentFormView: View {
                 notes: notes
             )
             modelContext.insert(newParent)
+            parentStore.parentID = newParent.id
         }
+        FeedbackService.success()
         dismiss()
     }
 }

@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import PhotosUI
+import UIKit
 
 /// Fast lab import: photo or paste → preview → one-tap save. No long forms.
 struct ImportLabReportView: View {
@@ -11,10 +12,22 @@ struct ImportLabReportView: View {
 
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var selectedImage: UIImage?
+    @State private var showCamera = false
     @State private var pastedText = ""
     @State private var isProcessing = false
     @State private var errorMessage: String?
     @State private var preview: LabAnalysisResult?
+    @State private var saveConfirmation: SaveConfirmation?
+
+    private struct SaveConfirmation: Identifiable {
+        let id = UUID()
+        let valueCount: Int
+        let parentName: String
+    }
+
+    private var isCameraAvailable: Bool {
+        UIImagePickerController.isSourceTypeAvailable(.camera)
+    }
 
     var body: some View {
         NavigationStack {
@@ -43,17 +56,32 @@ struct ImportLabReportView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
-                if preview != nil {
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Save") { savePreview() }
-                    }
-                }
             }
             .overlay {
                 if isProcessing {
                     ProgressView("Analyzing…")
                         .padding(20)
                         .liquidGlass(cornerRadius: 16)
+                }
+            }
+            .fullScreenCover(isPresented: $showCamera) {
+                CameraImagePicker { image in
+                    selectedImage = image
+                    Task { await analyze(image: image) }
+                }
+                .ignoresSafeArea()
+            }
+            .alert("Import saved", isPresented: Binding(
+                get: { saveConfirmation != nil },
+                set: { if !$0 { saveConfirmation = nil; dismiss() } }
+            )) {
+                Button("View Labs") {
+                    saveConfirmation = nil
+                    dismiss()
+                }
+            } message: {
+                if let saveConfirmation {
+                    Text("\(saveConfirmation.valueCount) values saved for \(saveConfirmation.parentName). Open the Labs tab to see the report, or Charts → Lab Trends for trends.")
                 }
             }
         }
@@ -63,25 +91,29 @@ struct ImportLabReportView: View {
         VStack(alignment: .leading, spacing: 16) {
             SectionHeader(
                 title: "Quick import for \(parent.name)",
-                subtitle: "Snap a photo or paste text — we'll extract values automatically"
+                subtitle: "Take a photo, choose from library, or paste text — we'll extract values automatically"
             )
 
-            PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                GlassCard {
-                    HStack(spacing: 14) {
-                        Image(systemName: "camera.viewfinder")
-                            .font(.title2)
-                            .foregroundStyle(AppTheme.softMint)
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Take or choose photo")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(.white)
-                            Text("On-device OCR — nothing leaves your phone")
-                                .font(.caption)
-                                .foregroundStyle(.white.opacity(0.5))
-                        }
-                        Spacer()
+            HStack(spacing: 12) {
+                if isCameraAvailable {
+                    Button {
+                        showCamera = true
+                    } label: {
+                        importOptionCard(
+                            icon: "camera.fill",
+                            title: "Take photo",
+                            subtitle: "Use camera"
+                        )
                     }
+                    .buttonStyle(.plain)
+                }
+
+                PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                    importOptionCard(
+                        icon: "photo.on.rectangle",
+                        title: "Choose photo",
+                        subtitle: "From library"
+                    )
                 }
             }
             .onChange(of: selectedPhoto) { _, item in
@@ -151,7 +183,7 @@ struct ImportLabReportView: View {
                 }
             }
 
-            QuickSaveBar(title: "Save to \(parent.name)'s records", isEnabled: true) {
+            QuickSaveBar(title: "Save to \(parent.name)'s records", isEnabled: !result.results.isEmpty) {
                 savePreview()
             }
 
@@ -162,6 +194,23 @@ struct ImportLabReportView: View {
             .font(.caption)
             .foregroundStyle(.white.opacity(0.55))
             .frame(maxWidth: .infinity)
+        }
+    }
+
+    private func importOptionCard(icon: String, title: String, subtitle: String) -> some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 8) {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundStyle(AppTheme.softMint)
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.5))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -202,15 +251,20 @@ struct ImportLabReportView: View {
     }
 
     private func savePreview() {
-        guard let preview else { return }
+        guard let preview, !preview.results.isEmpty else {
+            errorMessage = "No lab values to save. Re-analyze with a clearer photo or paste text."
+            return
+        }
         let report = LabReportRepository.save(analysis: preview, parent: parent, title: nil, context: modelContext)
+        try? modelContext.save()
         let alerts = HealthAlertService.labAlerts(from: preview, parent: parent, reportID: report.id)
         if !alerts.isEmpty {
             Task {
                 await NotificationService.shared.notifyHealthAlerts(alerts)
             }
         }
-        dismiss()
+        FeedbackService.success()
+        saveConfirmation = SaveConfirmation(valueCount: preview.results.count, parentName: parent.name)
     }
 
     private func format(_ value: Double) -> String {

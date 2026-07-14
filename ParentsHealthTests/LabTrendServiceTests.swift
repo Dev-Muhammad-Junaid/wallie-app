@@ -26,22 +26,11 @@ final class LabTrendServiceTests: XCTestCase {
 
     @MainActor
     func testDeltaCalculation() {
-        let previous = LabTrendPoint(
-            id: UUID(),
-            date: Date(),
-            value: 110,
-            reportID: UUID(),
-            reportTitle: "A",
-            isAbnormal: false
-        )
-        let current = LabTrendPoint(
-            id: UUID(),
-            date: Date(),
-            value: 125,
-            reportID: UUID(),
-            reportTitle: "B",
-            isAbnormal: true
-        )
+        let parent = ParentProfile(name: "Test")
+        let reportA = makeReport(parent: parent, date: Date(timeIntervalSince1970: 1_000_000), glucose: 110)
+        let reportB = makeReport(parent: parent, date: Date(timeIntervalSince1970: 2_000_000), glucose: 125)
+        let previous = LabTrendPoint(result: reportA.results[0], report: reportA)
+        let current = LabTrendPoint(result: reportB.results[0], report: reportB)
         XCTAssertEqual(LabTrendService.delta(from: previous, to: current), 15)
     }
 

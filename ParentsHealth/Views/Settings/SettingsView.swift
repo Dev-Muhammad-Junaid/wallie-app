@@ -4,6 +4,7 @@ import SwiftData
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var parentStore: SelectedParentStore
     @Query(sort: \ParentProfile.name) private var parents: [ParentProfile]
 
     @StateObject private var notifications = NotificationService.shared
@@ -18,9 +19,12 @@ struct SettingsView: View {
     @State private var showShareSheet = false
     @State private var shareItems: [Any] = []
     @State private var statusMessage = ""
+    @State private var isSyncingHealthKit = false
     @State private var useRemoteLabAPI = AppSettings.useRemoteLabAPI
     @State private var labAPIEndpoint = AppSettings.labAPIEndpoint ?? ""
     @State private var labAPIKey = AppSettings.labAPIKey
+    @State private var showDemoDataConfirm = false
+    @State private var isLoadingDemoData = false
 
     var body: some View {
         NavigationStack {
@@ -95,6 +99,56 @@ struct SettingsView: View {
                     }
                 }
 
+                Section("Demo Data") {
+                    Button {
+                        showDemoDataConfirm = true
+                    } label: {
+                        if isLoadingDemoData {
+                            HStack {
+                                ProgressView()
+                                Text("Loading year of data…")
+                            }
+                        } else {
+                            Text("Load 1-Year Sample Data")
+                                .foregroundStyle(AppTheme.warmCoral)
+                        }
+                    }
+                    .disabled(isLoadingDemoData)
+                    Text("Replaces all profiles with Margaret & Robert Chen — 12 months of vitals, quarterly labs, medications, and adherence logs.")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+
+                Section("Data Overview") {
+                    if parents.isEmpty {
+                        Text("Add a parent profile first, then log vitals, import labs, or sync HealthKit.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Picker("Profile", selection: $selectedParentForSync) {
+                            ForEach(parents) { parent in
+                                Text(parent.name).tag(Optional(parent.id))
+                            }
+                        }
+
+                        if let parent = parents.first(where: { $0.id == selectedParentForSync }) {
+                            let overview = parent.dataOverview
+                            LabeledContent("Vitals logged", value: "\(overview.vitalsTotal)")
+                            LabeledContent("Last 14 days", value: "\(overview.vitalsLast14Days)")
+                            LabeledContent("From HealthKit", value: "\(overview.vitalsFromHealthKit)")
+                            LabeledContent("Lab reports", value: "\(overview.labReports)")
+                            LabeledContent("Lab values", value: "\(overview.labValues)")
+                            LabeledContent("Medications", value: "\(overview.medications)")
+                            LabeledContent("Last vital", value: overview.lastVitalLabel)
+                            LabeledContent("Last lab", value: overview.lastLabLabel)
+
+                            Text("Verify: Home shows recent vitals · Charts plots trends · Labs lists saved reports · Export shares a full snapshot.")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
                 Section("HealthKit") {
                     Toggle("Sync from HealthKit", isOn: $healthKitEnabled)
                         .disabled(!healthKit.isAvailable)
@@ -109,10 +163,31 @@ struct SettingsView: View {
                             }
                         }
 
-                        Button("Sync Last 14 Days") {
+                        Button {
                             Task { await syncHealthKit() }
+                        } label: {
+                            if isSyncingHealthKit {
+                                HStack {
+                                    ProgressView()
+                                    Text("Syncing…")
+                                }
+                            } else {
+                                Text("Sync Last 14 Days")
+                            }
                         }
-                        .disabled(!healthKitEnabled || selectedParentForSync == nil)
+                        .disabled(!healthKitEnabled || selectedParentForSync == nil || isSyncingHealthKit)
+
+                        if healthKit.hasRequestedAccess {
+                            Text("If no data imports, open the Health app → Sharing → Apps → ParentsHealth and allow read access to vitals.")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        if !healthKit.lastSyncMessage.isEmpty {
+                            Text(healthKit.lastSyncMessage)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
 
                         if let lastSync = healthKit.lastSyncDate {
                             Text("Last sync: \(lastSync.formatted(date: .abbreviated, time: .shortened))")
@@ -127,16 +202,22 @@ struct SettingsView: View {
                 }
 
                 Section("Export Report") {
-                    Picker("Parent", selection: $selectedParentForExport) {
-                        ForEach(parents) { parent in
-                            Text(parent.name).tag(Optional(parent.id))
+                    if parents.isEmpty {
+                        Text("Add a parent profile to export a health report.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Picker("Parent", selection: $selectedParentForExport) {
+                            ForEach(parents) { parent in
+                                Text(parent.name).tag(Optional(parent.id))
+                            }
                         }
-                    }
 
-                    Button("Share Health Report") {
-                        exportReport()
+                        Button("Share Health Report") {
+                            exportReport()
+                        }
+                        .disabled(selectedParentForExport == nil)
                     }
-                    .disabled(selectedParentForExport == nil)
                 }
 
                 Section("Privacy") {
@@ -162,8 +243,12 @@ struct SettingsView: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(HealthGradientBackground())
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .preferredColorScheme(.dark)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
@@ -172,21 +257,41 @@ struct SettingsView: View {
             .sheet(isPresented: $showShareSheet) {
                 ShareSheet(items: shareItems)
             }
+            .alert("Load sample data?", isPresented: $showDemoDataConfirm) {
+                Button("Replace All Data", role: .destructive) {
+                    loadDemoData()
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This deletes your current parents, vitals, labs, and medications, then loads one year of demo data.")
+            }
             .task {
                 await notifications.refreshAuthorizationStatus()
-                selectedParentForExport = parents.first?.id
-                selectedParentForSync = parents.first?.id
+                selectedParentForExport = parentStore.parentID ?? parents.first?.id
+                selectedParentForSync = parentStore.parentID ?? parents.first?.id
+            }
+            .onChange(of: parentStore.parentID) { _, id in
+                if let id {
+                    selectedParentForExport = id
+                    selectedParentForSync = id
+                }
             }
         }
     }
 
     private func updateNotifications(enabled: Bool) async {
         if enabled {
-            let granted = notifications.isAuthorized || await notifications.requestAuthorization()
+            var granted = notifications.isAuthorized
+            if !granted {
+                granted = await notifications.requestAuthorization()
+            }
             if granted {
                 await notifications.rescheduleAll(parents: parents)
                 statusMessage = "Medication reminders scheduled."
             }
+        } else {
+            await notifications.cancelAllScheduledNotifications()
+            statusMessage = "All scheduled reminders cancelled."
         }
     }
 
@@ -194,19 +299,59 @@ struct SettingsView: View {
         if enabled, notifications.isAuthorized {
             await notifications.scheduleWeeklySummary(for: parents)
             statusMessage = "Weekly summary scheduled for Sundays at 9 AM."
+        } else {
+            await notifications.cancelWeeklySummary()
+            statusMessage = "Weekly summary cancelled."
         }
     }
 
     private func syncHealthKit() async {
         guard let parent = parents.first(where: { $0.id == selectedParentForSync }) else { return }
+        isSyncingHealthKit = true
+        defer { isSyncingHealthKit = false }
         do {
-            if !healthKit.isAuthorized {
+            if !healthKit.hasRequestedAccess {
                 try await healthKit.requestAuthorization()
             }
             let count = try await healthKit.syncMetrics(for: parent, context: modelContext)
-            statusMessage = "Imported \(count) readings from HealthKit."
+            try modelContext.save()
+            if count == 0 {
+                statusMessage = "Sync finished — no new readings in the last 14 days for \(parent.name). Check Health permissions or add data in the Health app."
+            } else {
+                statusMessage = "Imported \(count) readings for \(parent.name). Check Home and Charts, or Data Overview above."
+            }
+            FeedbackService.success()
         } catch {
             statusMessage = error.localizedDescription
+            FeedbackService.warning()
+        }
+    }
+
+    private func loadDemoData() {
+        guard !isLoadingDemoData else { return }
+        isLoadingDemoData = true
+        statusMessage = "Loading demo data…"
+
+        Task { @MainActor in
+            await NotificationService.shared.cancelAllScheduledNotifications()
+            // Yield so the progress UI can paint before the heavy insert work.
+            await Task.yield()
+            SampleData.loadYearDemo(into: modelContext)
+
+            let fetched = (try? modelContext.fetch(FetchDescriptor<ParentProfile>(
+                sortBy: [SortDescriptor(\.name)]
+            ))) ?? []
+            parentStore.parentID = fetched.first?.id
+            selectedParentForExport = fetched.first?.id
+            selectedParentForSync = fetched.first?.id
+
+            if AppSettings.notificationsEnabled {
+                await NotificationService.shared.rescheduleAll(parents: fetched)
+            }
+
+            isLoadingDemoData = false
+            statusMessage = "Loaded 1 year of demo data. Explore Home, Charts, Labs, and Meds."
+            FeedbackService.success()
         }
     }
 

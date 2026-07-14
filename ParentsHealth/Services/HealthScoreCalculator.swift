@@ -4,11 +4,16 @@ enum HealthScoreCalculator {
     /// Composite health score (60–100) from recent metric normal-range ratio.
     static func score(from metrics: [HealthMetricSnapshot], withinDays days: Int = 7, referenceDate: Date = Date()) -> Int {
         let cutoff = Calendar.current.date(byAdding: .day, value: -days, to: referenceDate)!
-        let recent = metrics.filter { $0.recordedAt > cutoff }
+        let recent = metrics.filter { $0.recordedAt >= cutoff }
         guard !recent.isEmpty else { return 75 }
 
-        let normalCount = recent.filter(\.isInNormalRange).count
-        let ratio = Double(normalCount) / Double(recent.count)
+        let normalCount = recent.filter { snapshot in
+            snapshot.type != .weight && snapshot.isInNormalRange
+        }.count
+        let scoredCount = recent.filter { $0.type != .weight }.count
+        guard scoredCount > 0 else { return 75 }
+
+        let ratio = Double(normalCount) / Double(scoredCount)
         return Int(60 + ratio * 40)
     }
 }

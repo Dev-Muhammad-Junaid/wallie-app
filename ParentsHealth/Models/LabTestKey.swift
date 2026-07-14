@@ -95,10 +95,21 @@ enum LabTestKey: String, CaseIterable, Identifiable, Codable {
     }
 
     static func resolve(from name: String) -> LabTestKey? {
-        let lowered = name.lowercased()
-        return LabTestKey.allCases.first { key in
-            key.aliases.contains { lowered.contains($0) } || lowered == key.rawValue
+        let lowered = name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        var bestMatch: (key: LabTestKey, aliasLength: Int)?
+
+        for key in LabTestKey.allCases {
+            if lowered == key.rawValue {
+                return key
+            }
+            for alias in key.aliases where lowered.contains(alias) {
+                if bestMatch == nil || alias.count > bestMatch!.aliasLength {
+                    bestMatch = (key, alias.count)
+                }
+            }
         }
+
+        return bestMatch?.key
     }
 
     var defaultRange: ClosedRange<Double> {
@@ -131,6 +142,26 @@ enum LabTestKey: String, CaseIterable, Identifiable, Codable {
         let lower = formatBound(range.lowerBound)
         let upper = formatBound(range.upperBound)
         return "\(lower)–\(upper) \(unit)"
+    }
+
+    /// Shared abnormal check used by parser, seeder, import, and UI.
+    func isAbnormal(_ value: Double) -> Bool {
+        let range = defaultRange
+        if highIsBad {
+            return value > range.upperBound || value < range.lowerBound
+        }
+        return value < range.lowerBound || value > range.upperBound
+    }
+
+    /// Whether an increase is concerning for this marker (false for HDL, hemoglobin, vitamin D).
+    func isWorseningDelta(_ delta: Double) -> Bool {
+        if abs(delta) < 0.0001 { return false }
+        return highIsBad ? delta > 0 : delta < 0
+    }
+
+    func deltaColor(for delta: Double) -> Color {
+        if abs(delta) < 0.0001 { return .white.opacity(0.55) }
+        return isWorseningDelta(delta) ? AppTheme.warmCoral.opacity(0.9) : AppTheme.softMint
     }
 
     func boundary(for value: Double) -> AlertBoundary {

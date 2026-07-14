@@ -70,6 +70,17 @@ final class HealthAlertServiceTests: XCTestCase {
         XCTAssertTrue(summary.contains("out-of-range"))
     }
 
+    func testWeightChangeAlert() {
+        let parent = ParentProfile(name: "Test")
+        let prior = HealthMetric(type: .weight, value: 70, recordedAt: Date().addingTimeInterval(-86400 * 3), parent: parent)
+        let current = HealthMetric(type: .weight, value: 77, recordedAt: Date(), parent: parent)
+        parent.metrics = [prior, current]
+
+        let alert = HealthAlertService.alertIfNeeded(for: current, parent: parent)
+        XCTAssertNotNil(alert)
+        XCTAssertEqual(alert?.title, "Weight Change")
+    }
+
     private func makeLabReport(
         parent: ParentProfile,
         glucose: Double,

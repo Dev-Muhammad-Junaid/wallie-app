@@ -36,7 +36,10 @@ enum HealthAlertService {
   }
 
   static func alertIfNeeded(for metric: HealthMetric, parent: ParentProfile) -> HealthAlert? {
-    guard !metric.isInNormalRange, metric.type != .weight else { return nil }
+    if metric.type == .weight {
+      return weightAlertIfNeeded(for: metric, parent: parent)
+    }
+    guard !metric.isInNormalRange else { return nil }
     return vitalAlert(from: metric, parent: parent)
   }
 
@@ -80,9 +83,51 @@ enum HealthAlertService {
     }
 
     return latestByType.values.compactMap { metric in
-      guard !metric.isInNormalRange, metric.type != .weight else { return nil }
+      if metric.type == .weight {
+        return weightAlertIfNeeded(for: metric, parent: parent)
+      }
+      guard !metric.isInNormalRange else { return nil }
       return vitalAlert(from: metric, parent: parent)
     }
+  }
+
+  private static let weightChangeThreshold = 0.05
+
+  private static func weightAlertIfNeeded(for metric: HealthMetric, parent: ParentProfile) -> HealthAlert? {
+    guard metric.type == .weight else { return nil }
+
+    let priorReadings = parent.metrics
+      .filter { $0.type == .weight && $0.id != metric.id && $0.recordedAt < metric.recordedAt }
+      .sorted { $0.recordedAt > $1.recordedAt }
+
+    guard let prior = priorReadings.first, prior.value > 0 else { return nil }
+
+    let changeRatio = abs(metric.value - prior.value) / prior.value
+    guard changeRatio >= weightChangeThreshold else { return nil }
+
+    let boundary: AlertBoundary = metric.value > prior.value ? .aboveRange : .belowRange
+    let severity: AlertSeverity = changeRatio >= 0.10 ? .attention : .watch
+    let delta = metric.value - prior.value
+    let sign = delta >= 0 ? "+" : ""
+
+    return HealthAlert(
+      id: "vital-\(parent.id.uuidString)-weight",
+      parentID: parent.id,
+      parentName: parent.name,
+      source: .vital,
+      title: "Weight Change",
+      valueText: "\(formatValue(metric.value)) kg (\(sign)\(formatValue(delta)) kg)",
+      referenceRangeText: "Prior: \(formatValue(prior.value)) kg",
+      boundary: boundary,
+      severity: severity,
+      trend: delta > 0 ? .worsening : .improving,
+      recordedAt: metric.recordedAt,
+      healthImpact: MetricType.weight.healthImpact(boundary: boundary, value: metric.value),
+      careHint: MetricType.weight.careHint(for: severity),
+      metricType: .weight,
+      labTestKey: nil,
+      labReportID: nil
+    )
   }
 
   private static func vitalAlert(from metric: HealthMetric, parent: ParentProfile) -> HealthAlert {

@@ -105,7 +105,7 @@ struct QuickLogView: View {
     private func valueField(_ placeholder: String, text: Binding<String>) -> some View {
         TextField(placeholder, text: text)
             .keyboardType(.decimalPad)
-            .font(.title2.weight(.bold).rounded())
+            .font(.system(.title2, design: .rounded).weight(.bold))
             .foregroundStyle(.white)
             .multilineTextAlignment(.center)
             .padding(.vertical, 8)
@@ -113,24 +113,34 @@ struct QuickLogView: View {
     }
 
     private var canSave: Bool {
-        guard parentStore.parentID != nil, let value = Double(valueText), value > 0 else { return false }
+        guard parentStore.parent(from: parents) != nil,
+              let value = Double(valueText), value > 0 else { return false }
         if selectedType == .bloodPressure {
-            return Double(secondaryValueText) != nil
+            guard let diastolic = Double(secondaryValueText), diastolic > 0 else { return false }
+            return value > diastolic
         }
         return true
     }
 
     private func save() {
         guard let parent = parentStore.parent(from: parents),
-              let value = Double(valueText) else { return }
+              let value = Double(valueText), value > 0 else { return }
+
+        var secondary: Double?
+        if selectedType == .bloodPressure {
+            guard let diastolic = Double(secondaryValueText), diastolic > 0, value > diastolic else { return }
+            secondary = diastolic
+        }
 
         let metric = HealthMetric(
             type: selectedType,
             value: value,
-            secondaryValue: Double(secondaryValueText),
+            secondaryValue: secondary,
             parent: parent
         )
         modelContext.insert(metric)
+        try? modelContext.save()
+        FeedbackService.success()
         if let alert = HealthAlertService.alertIfNeeded(for: metric, parent: parent) {
             Task {
                 await NotificationService.shared.notifyHealthAlert(alert)

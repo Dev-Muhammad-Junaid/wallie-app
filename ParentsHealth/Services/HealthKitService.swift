@@ -9,7 +9,7 @@ final class HealthKitService: ObservableObject {
     private let store = HKHealthStore()
 
     @Published private(set) var isAvailable = HKHealthStore.isHealthDataAvailable()
-    @Published private(set) var isAuthorized = false
+    @Published private(set) var hasRequestedAccess = false
     @Published private(set) var lastSyncDate: Date?
     @Published var lastSyncMessage = ""
 
@@ -29,7 +29,7 @@ final class HealthKitService: ObservableObject {
         ]
 
         try await store.requestAuthorization(toShare: [], read: readTypes)
-        isAuthorized = true
+        hasRequestedAccess = true
     }
 
     func syncMetrics(for parent: ParentProfile, context: ModelContext, days: Int = 14) async throws -> Int {
@@ -49,10 +49,7 @@ final class HealthKitService: ObservableObject {
             type: .heartRate, metricType: .heartRate, unit: .count().unitDivided(by: .minute()),
             for: parent, context: context, since: since
         )
-        imported += try await importQuantity(
-            type: .bloodGlucose, metricType: .bloodGlucose, unit: .gramUnit(with: .milli).unitDivided(by: .liter()),
-            for: parent, context: context, since: since, factor: 18.0182 // mmol/L to mg/dL if needed
-        )
+        imported += try await importGlucose(for: parent, context: context, since: since)
 
         lastSyncDate = Date()
         lastSyncMessage = "Imported \(imported) readings from HealthKit"
@@ -67,10 +64,9 @@ final class HealthKitService: ObservableObject {
         var imported = 0
         for sample in samples {
             guard !metricExists(parent: parent, date: sample.startDate, type: .bloodPressure) else { continue }
+            guard let diastolic = try await diastolicValue(for: sample) else { continue }
 
-            let diastolic = try await diastolicValue(for: sample)
             let systolic = sample.quantity.doubleValue(for: .millimeterOfMercury())
-
             let metric = HealthMetric(
                 type: .bloodPressure,
                 value: systolic,
@@ -80,18 +76,55 @@ final class HealthKitService: ObservableObject {
                 parent: parent
             )
             context.insert(metric)
+            notifyIfNeeded(for: metric, parent: parent)
             imported += 1
         }
         return imported
     }
 
-    private func diastolicValue(for systolicSample: HKQuantitySample) async throws -> Double {
+    private func diastolicValue(for systolicSample: HKQuantitySample) async throws -> Double? {
         guard let bpType = HKCorrelationType.correlationType(forIdentifier: .bloodPressure),
               let correlation = try await fetchCorrelations(type: bpType, around: systolicSample.startDate).first,
               let diastolic = correlation.objects(for: HKQuantityType(.bloodPressureDiastolic)).first as? HKQuantitySample
-        else { return 80 }
+        else { return nil }
 
         return diastolic.quantity.doubleValue(for: .millimeterOfMercury())
+    }
+
+    private func importGlucose(for parent: ParentProfile, context: ModelContext, since: Date) async throws -> Int {
+        let quantityType = HKQuantityType(.bloodGlucose)
+        let predicate = HKQuery.predicateForSamples(withStart: since, end: Date())
+        let samples: [HKQuantitySample] = try await fetchSamples(type: quantityType, predicate: predicate)
+
+        var imported = 0
+        for sample in samples {
+            guard !metricExists(parent: parent, date: sample.startDate, type: .bloodGlucose) else { continue }
+
+            let value = glucoseValueMgDL(from: sample)
+            let metric = HealthMetric(
+                type: .bloodGlucose,
+                value: value,
+                notes: "Imported from HealthKit",
+                recordedAt: sample.startDate,
+                parent: parent
+            )
+            context.insert(metric)
+            notifyIfNeeded(for: metric, parent: parent)
+            imported += 1
+        }
+        return imported
+    }
+
+    /// Reads glucose in mg/dL, converting from mmol/L when needed.
+    private func glucoseValueMgDL(from sample: HKQuantitySample) -> Double {
+        let mgdlUnit = HKUnit.gramUnit(with: .milli).unitDivided(by: HKUnit.literUnit(with: .deci))
+        let mmolUnit = HKUnit.moleUnit(with: .milli, molarMass: HKUnitMolarMassBloodGlucose).unitDivided(by: .liter())
+
+        let mgdl = sample.quantity.doubleValue(for: mgdlUnit)
+        if mgdl >= 20 { return mgdl }
+
+        let mmol = sample.quantity.doubleValue(for: mmolUnit)
+        return mmol * 18.0182
     }
 
     private func importQuantity(
@@ -100,8 +133,7 @@ final class HealthKitService: ObservableObject {
         unit: HKUnit,
         for parent: ParentProfile,
         context: ModelContext,
-        since: Date,
-        factor: Double = 1.0
+        since: Date
     ) async throws -> Int {
         let quantityType = HKQuantityType(type)
         let predicate = HKQuery.predicateForSamples(withStart: since, end: Date())
@@ -111,7 +143,7 @@ final class HealthKitService: ObservableObject {
         for sample in samples {
             guard !metricExists(parent: parent, date: sample.startDate, type: metricType) else { continue }
 
-            let value = sample.quantity.doubleValue(for: unit) * factor
+            let value = sample.quantity.doubleValue(for: unit)
             let metric = HealthMetric(
                 type: metricType,
                 value: value,
@@ -120,9 +152,17 @@ final class HealthKitService: ObservableObject {
                 parent: parent
             )
             context.insert(metric)
+            notifyIfNeeded(for: metric, parent: parent)
             imported += 1
         }
         return imported
+    }
+
+    private func notifyIfNeeded(for metric: HealthMetric, parent: ParentProfile) {
+        guard let alert = HealthAlertService.alertIfNeeded(for: metric, parent: parent) else { return }
+        Task {
+            await NotificationService.shared.notifyHealthAlert(alert)
+        }
     }
 
     private func metricExists(parent: ParentProfile, date: Date, type: MetricType) -> Bool {

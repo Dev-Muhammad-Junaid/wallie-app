@@ -59,17 +59,65 @@ final class ParentProfile {
     }
 
     var latestMetrics: [HealthMetric] {
+        recentMetrics(withinDays: 7)
+    }
+
+    /// Latest reading per metric type within the given day window.
+    func recentMetrics(withinDays days: Int, referenceDate: Date = Date()) -> [HealthMetric] {
+        let cutoff = Calendar.current.date(byAdding: .day, value: -days, to: referenceDate) ?? referenceDate
         var latest: [MetricType: HealthMetric] = [:]
-        for metric in metrics.sorted(by: { $0.recordedAt > $1.recordedAt }) {
+        for metric in metrics
+            .filter({ $0.recordedAt >= cutoff })
+            .sorted(by: { $0.recordedAt > $1.recordedAt }) {
             if latest[metric.type] == nil {
                 latest[metric.type] = metric
             }
         }
-        return Array(latest.values)
+        return MetricType.allCases.compactMap { latest[$0] }
     }
 
     func healthScore(referenceDate: Date = Date()) -> Int {
         let snapshots = metrics.map(HealthMetricSnapshot.init)
         return HealthScoreCalculator.score(from: snapshots, referenceDate: referenceDate)
+    }
+}
+
+extension ParentProfile {
+    /// Snapshot for verifying imported and logged data in Settings.
+    struct DataOverview {
+        let vitalsTotal: Int
+        let vitalsFromHealthKit: Int
+        let vitalsLast14Days: Int
+        let labReports: Int
+        let labValues: Int
+        let medications: Int
+        let lastVitalDate: Date?
+        let lastLabDate: Date?
+
+        var lastVitalLabel: String {
+            lastVitalDate?.formatted(date: .abbreviated, time: .shortened) ?? "None yet"
+        }
+
+        var lastLabLabel: String {
+            lastLabDate?.formatted(date: .abbreviated, time: .omitted) ?? "None yet"
+        }
+    }
+
+    var dataOverview: DataOverview {
+        let cutoff = Calendar.current.date(byAdding: .day, value: -14, to: Date()) ?? Date()
+        let healthKitMetrics = metrics.filter { $0.notes.localizedCaseInsensitiveContains("HealthKit") }
+        let recent = metrics.filter { $0.recordedAt >= cutoff }
+        let labDates = labReports.map(\.effectiveDate)
+
+        return DataOverview(
+            vitalsTotal: metrics.count,
+            vitalsFromHealthKit: healthKitMetrics.count,
+            vitalsLast14Days: recent.count,
+            labReports: labReports.count,
+            labValues: labReports.reduce(0) { $0 + $1.results.count },
+            medications: medications.count,
+            lastVitalDate: metrics.map(\.recordedAt).max(),
+            lastLabDate: labDates.max()
+        )
     }
 }

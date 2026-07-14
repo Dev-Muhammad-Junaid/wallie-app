@@ -2,59 +2,98 @@ import SwiftUI
 import SwiftData
 
 struct ParentsListView: View {
+    @Binding var showAddParent: Bool
+
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var parentStore: SelectedParentStore
     @Query(sort: \ParentProfile.name) private var parents: [ParentProfile]
-    @State private var showAddParent = false
     @State private var parentToEdit: ParentProfile?
+    @State private var parentToDelete: ParentProfile?
+
+    init(showAddParent: Binding<Bool> = .constant(false)) {
+        _showAddParent = showAddParent
+    }
 
     var body: some View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
-                LazyVStack(spacing: 14) {
-                    ForEach(parents) { parent in
-                        NavigationLink {
-                            ParentDetailView(parent: parent)
-                        } label: {
-                            ParentCard(parent: parent)
+                if parents.isEmpty {
+                    GlassCard {
+                        VStack(spacing: 14) {
+                            Image(systemName: "person.2.badge.plus")
+                                .font(.largeTitle)
+                                .foregroundStyle(AppTheme.softMint)
+                            Text("No parents yet")
+                                .font(.sectionHeadline)
+                                .foregroundStyle(.white)
+                            Text("Create a profile to start tracking vitals, labs, and medications.")
+                                .font(.subheadline)
+                                .foregroundStyle(.white.opacity(0.55))
+                                .multilineTextAlignment(.center)
+                            Button("Add first parent") { showAddParent = true }
+                                .buttonStyle(.borderedProminent)
+                                .tint(AppTheme.deepTeal)
                         }
-                        .buttonStyle(.plain)
-                        .contextMenu {
-                            Button("Edit") { parentToEdit = parent }
-                            Button("Delete", role: .destructive) {
-                                modelContext.delete(parent)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 32)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 16)
+                } else {
+                    LazyVStack(spacing: 14) {
+                        ForEach(parents) { parent in
+                            NavigationLink {
+                                ParentDetailView(parent: parent)
+                            } label: {
+                                ParentCard(parent: parent)
+                            }
+                            .buttonStyle(.plain)
+                            .contextMenu {
+                                Button("Edit") { parentToEdit = parent }
+                                Button("Delete", role: .destructive) { parentToDelete = parent }
                             }
                         }
-                    }
 
-                    Button {
-                        showAddParent = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "plus.circle.fill")
-                            Text("Add Parent")
-                                .font(.sectionHeadline)
-                        }
-                        .foregroundStyle(AppTheme.softMint)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 20)
-                        .liquidGlass(cornerRadius: AppTheme.cardRadius, interactive: true)
                     }
-                    .buttonStyle(.plain)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 16)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 16)
-                .padding(.bottom, 120)
             }
+            .scrollBottomClearance()
             .navigationTitle("Parents")
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
-        .sheet(isPresented: $showAddParent) {
-            ParentFormView()
-        }
         .sheet(item: $parentToEdit) { parent in
             ParentFormView(parent: parent)
+                .environmentObject(parentStore)
         }
+        .alert("Delete parent?", isPresented: Binding(
+            get: { parentToDelete != nil },
+            set: { if !$0 { parentToDelete = nil } }
+        )) {
+            Button("Delete", role: .destructive) {
+                if let parent = parentToDelete {
+                    confirmDelete(parent)
+                }
+                parentToDelete = nil
+            }
+            Button("Cancel", role: .cancel) { parentToDelete = nil }
+        } message: {
+            Text("This permanently removes all vitals, medications, and lab reports for this parent.")
+        }
+        .onAppear {
+            parentStore.ensureSelection(from: parents)
+        }
+    }
+
+    private func confirmDelete(_ parent: ParentProfile) {
+        Task {
+            await NotificationService.shared.cancelMedicationReminders(for: parent.medications)
+        }
+        modelContext.delete(parent)
+        parentStore.ensureSelection(from: parents.filter { $0.id != parent.id })
+        FeedbackService.warning()
     }
 }
 
@@ -88,7 +127,7 @@ struct ParentCard: View {
 
             VStack(spacing: 4) {
                 Text("\(parent.healthScore())")
-                    .font(.title3.weight(.bold).rounded())
+                    .font(.system(.title3, design: .rounded).weight(.bold))
                     .foregroundStyle(.white)
                 Text("score")
                     .font(.caption2)
@@ -102,5 +141,6 @@ struct ParentCard: View {
 
 #Preview {
     ParentsListView()
+        .environmentObject(SelectedParentStore())
         .modelContainer(SampleData.previewContainer)
 }

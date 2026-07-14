@@ -64,6 +64,22 @@ final class NotificationService: ObservableObject {
         center.removePendingNotificationRequests(withIdentifiers: identifiers)
     }
 
+    func cancelAllScheduledNotifications() async {
+        let pending = await center.pendingNotificationRequests()
+        let ids = pending.map(\.identifier)
+        center.removePendingNotificationRequests(withIdentifiers: ids)
+    }
+
+    func cancelWeeklySummary() async {
+        center.removePendingNotificationRequests(withIdentifiers: ["weekly-summary"])
+    }
+
+    func cancelMedicationReminders(for medications: [Medication]) async {
+        for medication in medications {
+            await cancelMedicationReminders(for: medication)
+        }
+    }
+
     func scheduleWeeklySummary(for parents: [ParentProfile]) async {
         guard isAuthorized else { return }
 
@@ -112,7 +128,9 @@ final class NotificationService: ObservableObject {
         ]
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-        let identifier = "health-alert-\(alert.id)-\(UUID().uuidString)"
+        // Stable ID so re-importing the same abnormal marker replaces, not stacks, notifications.
+        let identifier = "health-alert-\(alert.id)"
+        center.removePendingNotificationRequests(withIdentifiers: [identifier])
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
         try? await center.add(request)
     }

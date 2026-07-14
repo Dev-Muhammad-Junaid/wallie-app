@@ -15,7 +15,7 @@ struct ParentDetailView: View {
                 infoSection
             }
             .padding(.horizontal, 20)
-            .padding(.bottom, 40)
+            .scrollBottomClearance()
         }
         .background(HealthGradientBackground())
         .navigationTitle(parent.name)
@@ -115,14 +115,29 @@ struct ParentDetailView: View {
                     Text("No lab reports imported")
                         .foregroundStyle(.white.opacity(0.5))
                 } else {
-                    ForEach(parent.labReports.sorted(by: { $0.importedAt > $1.importedAt }).prefix(3), id: \.id) { report in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(report.title)
-                                .font(.subheadline.weight(.medium))
-                                .foregroundStyle(.white)
-                            Text("\(report.results.count) values · \(report.abnormalCount) flagged")
-                                .font(.caption)
-                                .foregroundStyle(.white.opacity(0.5))
+                    ForEach(parent.labReports.sorted(by: { $0.importedAt > $1.importedAt }).prefix(5), id: \.id) { report in
+                        NavigationLink {
+                            LabReportDetailView(report: report, parent: parent)
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(report.title)
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundStyle(.white)
+                                    Text("\(report.results.count) values · \(report.abnormalCount) flagged")
+                                        .font(.caption)
+                                        .foregroundStyle(.white.opacity(0.5))
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.white.opacity(0.35))
+                            }
+                        }
+                        .buttonStyle(.plain)
+
+                        if report.id != parent.labReports.sorted(by: { $0.importedAt > $1.importedAt }).prefix(5).last?.id {
+                            Divider().overlay(Color.white.opacity(0.1))
                         }
                     }
                 }

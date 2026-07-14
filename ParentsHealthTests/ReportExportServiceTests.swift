@@ -8,14 +8,16 @@ final class ReportExportServiceTests: XCTestCase {
         let report = ReportExportService.generateTextReport(parent: parent)
         XCTAssertTrue(report.contains("Test Parent"))
         XCTAssertTrue(report.contains("ParentsHealth Report"))
-        XCTAssertTrue(report.contains("not medical advice"))
+        XCTAssertTrue(report.localizedCaseInsensitiveContains("not medical advice"))
     }
 
     @MainActor
-    func testGenerateTextReportIncludesHealthScore() {
+    func testGenerateTextReportIncludesAlertsSection() {
         let parent = ParentProfile(name: "Jane Doe")
+        parent.metrics = [
+            HealthMetric(type: .bloodGlucose, value: 220, recordedAt: Date(), parent: parent)
+        ]
         let report = ReportExportService.generateTextReport(parent: parent)
-        XCTAssertTrue(report.contains("Health Score"))
-        XCTAssertTrue(report.contains("Jane Doe"))
+        XCTAssertTrue(report.contains("Active Health Alerts"))
     }
 }

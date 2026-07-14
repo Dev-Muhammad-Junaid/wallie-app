@@ -4,6 +4,7 @@ import SwiftData
 struct HealthAlertsView: View {
     @Query(sort: \ParentProfile.name) private var parents: [ParentProfile]
     @EnvironmentObject private var parentStore: SelectedParentStore
+    @Environment(\.dismiss) private var dismiss
     @State private var filterSource: HealthAlertSource?
 
     private var alerts: [HealthAlert] {
@@ -40,12 +41,17 @@ struct HealthAlertsView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 12)
-                .padding(.bottom, 120)
+                .padding(.bottom, 20)
             }
             .background(HealthGradientBackground())
-            .navigationTitle("Alerts")
+            .navigationTitle("Health Alerts")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
             .accessibilityIdentifier("healthAlertsView")
         }
         .onAppear {
@@ -158,7 +164,7 @@ struct HealthAlertCard: View {
 
                 HStack(alignment: .firstTextBaseline) {
                     Text(alert.valueText)
-                        .font(.title2.weight(.bold).rounded())
+                        .font(.system(.title2, design: .rounded).weight(.bold))
                         .foregroundStyle(severityColor)
                     Spacer()
                     VStack(alignment: .trailing, spacing: 2) {

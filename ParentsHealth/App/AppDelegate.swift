@@ -1,6 +1,10 @@
 import UIKit
 import UserNotifications
 
+extension Notification.Name {
+    static let appNavigationRequested = Notification.Name("appNavigationRequested")
+}
+
 final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(
         _ application: UIApplication,
@@ -15,5 +19,19 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
         [.banner, .sound]
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse
+    ) async {
+        let type = response.notification.request.content.userInfo["type"] as? String
+        await MainActor.run {
+            NotificationCenter.default.post(
+                name: .appNavigationRequested,
+                object: nil,
+                userInfo: ["type": type ?? ""]
+            )
+        }
     }
 }

@@ -24,6 +24,29 @@ enum AppTheme {
     static let sectionSpacing: CGFloat = 20
     static let cardRadius: CGFloat = 22
     static let chipRadius: CGFloat = 14
+
+    /// Heights that make up the floating tab bar + optional FAB overlay.
+    enum BottomChrome {
+        static let fabSize: CGFloat = 58
+        static let fabSpacing: CGFloat = 8
+        static let tabBarHeight: CGFloat = 74
+        static let outerPadding: CGFloat = 6
+        /// Extra breathing room so the last row clears the glass chrome.
+        static let scrollComfort: CGFloat = 28
+
+        static func scrollPadding(showsFAB: Bool) -> CGFloat {
+            tabBarHeight + outerPadding + scrollComfort + (showsFAB ? fabSize + fabSpacing : 0)
+        }
+    }
+
+    /// Use `scrollBottomClearance()` on tab-root scroll content instead of this constant.
+    @available(*, deprecated, message: "Use scrollBottomClearance() with bottomChromeScrollPadding environment")
+    static let tabBarClearance: CGFloat = BottomChrome.scrollPadding(showsFAB: true)
+
+    static let tabSelectedForeground = Color.white
+    static let tabUnselectedForeground = Color.white.opacity(0.40)
+    static let tabSelectedBackground = Color.white.opacity(0.16)
+    static let tabSelectedBorder = Color.white.opacity(0.32)
 }
 
 extension Font {

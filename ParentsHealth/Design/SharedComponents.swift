@@ -1,4 +1,48 @@
 import SwiftUI
+import UIKit
+
+/// Presents the device camera to capture a single photo.
+struct CameraImagePicker: UIViewControllerRepresentable {
+    @Environment(\.dismiss) private var dismiss
+    var onImagePicked: (UIImage) -> Void
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onImagePicked: onImagePicked, dismiss: dismiss)
+    }
+
+    final class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
+        let onImagePicked: (UIImage) -> Void
+        let dismiss: DismissAction
+
+        init(onImagePicked: @escaping (UIImage) -> Void, dismiss: DismissAction) {
+            self.onImagePicked = onImagePicked
+            self.dismiss = dismiss
+        }
+
+        func imagePickerController(
+            _ picker: UIImagePickerController,
+            didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
+        ) {
+            if let image = info[.originalImage] as? UIImage {
+                onImagePicked(image)
+            }
+            dismiss()
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            dismiss()
+        }
+    }
+}
 
 /// Shared parent selector used across Labs, Charts, Dashboard.
 struct ParentChipPicker: View {
@@ -118,5 +162,33 @@ struct SectionHeader: View {
                     .foregroundStyle(.white.opacity(0.5))
             }
         }
+    }
+}
+
+// MARK: - Bottom tab bar scroll clearance
+
+private struct BottomChromeScrollPaddingKey: EnvironmentKey {
+    static let defaultValue: CGFloat = AppTheme.BottomChrome.scrollPadding(showsFAB: true)
+}
+
+extension EnvironmentValues {
+    var bottomChromeScrollPadding: CGFloat {
+        get { self[BottomChromeScrollPaddingKey.self] }
+        set { self[BottomChromeScrollPaddingKey.self] = newValue }
+    }
+}
+
+extension View {
+    /// Keeps the last scroll row visible above the custom tab bar and FAB.
+    func scrollBottomClearance() -> some View {
+        modifier(ScrollBottomClearanceModifier())
+    }
+}
+
+private struct ScrollBottomClearanceModifier: ViewModifier {
+    @Environment(\.bottomChromeScrollPadding) private var padding
+
+    func body(content: Content) -> some View {
+        content.padding(.bottom, padding)
     }
 }
