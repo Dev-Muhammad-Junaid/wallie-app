@@ -1,15 +1,18 @@
 # ParentsHealth
 
-A private, on-device iOS app to track your parents' health — vitals, medications, monthly trends, lab report analysis, and health scores. Built with native SwiftUI and Apple's Liquid Glass design language.
+A private iOS app to track your parents' health — vitals, medications, doctor visits, lab reports, and health scores. Built with native SwiftUI and Apple's Liquid Glass design language.
 
 ## Features
 
 - **Parent Profiles** — manage multiple parents with conditions, blood type, emergency contacts
 - **Daily Vitals** — log blood pressure, weight, heart rate, and blood glucose
 - **Monthly Charts** — Swift Charts trends with month navigation and min/avg/max stats
-- **Medication Tracking** — schedules, local push reminders, adherence percentage
+- **Medication Tracking** — daily / weekly / monthly / as-needed schedules, Taken/Skip/Undo, local reminders, adherence
+- **Medication Label Scan** — photo or camera OCR to prefill name and dosage
+- **Care Network** — save doctors (phone/email) and appointments with visit reminders
 - **Lab Report Analysis** — on-device OCR (Vision) + value extraction + AI-style insights
 - **HealthKit Sync** — optional import of BP, weight, HR, glucose from Apple Health
+- **iCloud Sync** — optional SwiftData CloudKit sync across devices on the same iCloud account
 - **Export Reports** — share text health summaries
 - **Health Score** — composite score from recent vitals
 - **Health Alerts** — out-of-range vitals and lab markers with severity, boundary analysis, trend direction, and plain-language health impact notes
@@ -26,7 +29,8 @@ A private, on-device iOS app to track your parents' health — vitals, medicatio
 1. Clone the repository
 2. Open `ParentsHealth.xcodeproj` in Xcode
 3. Select your development team in Signing & Capabilities
-4. Build and run on simulator or device (⌘R)
+4. Enable the **iCloud** capability with CloudKit (container `iCloud.com.widgetsflow.parentshealth`) if you want multi-device sync
+5. Build and run on simulator or device (⌘R)
 
 Sample data (Margaret & Robert Chen) is seeded automatically on first launch.
 
@@ -117,7 +121,7 @@ scripts/              Offline logic validation
 
 ## Privacy
 
-All health data is stored locally on-device using SwiftData. Lab OCR and analysis run entirely on-device. No cloud sync, no analytics, no data sharing.
+Health data is stored with SwiftData. Lab and medication OCR/analysis run on-device. Optional **iCloud Sync** (Settings) keeps the same Apple ID’s devices in sync via CloudKit — siblings using different Apple IDs do not share a database yet. No analytics.
 
 ## Linear Project
 

@@ -95,7 +95,65 @@ enum SampleData {
         seedMargaretLabReports(for: mom, calendar: calendar, today: today, context: context)
         seedRobertLabReports(for: dad, calendar: calendar, today: today, context: context)
 
+        seedCareNetwork(for: mom, dad: dad, calendar: calendar, today: today, context: context)
+
         try? context.save()
+    }
+
+    @MainActor
+    private static func seedCareNetwork(
+        for mom: ParentProfile,
+        dad: ParentProfile,
+        calendar: Calendar,
+        today: Date,
+        context: ModelContext
+    ) {
+        let cardiologist = CareProvider(
+            name: "Dr. Anita Patel",
+            specialty: "Cardiology",
+            phone: "+1 555-0188",
+            email: "apatel@heartclinic.example",
+            clinic: "Bay Heart Clinic",
+            notes: "Sees Margaret every 3 months for BP and cholesterol.",
+            parent: mom
+        )
+        let endocrinologist = CareProvider(
+            name: "Dr. Marcus Lee",
+            specialty: "Endocrinology",
+            phone: "+1 555-0199",
+            clinic: "Metabolic Care Center",
+            parent: mom
+        )
+        let gp = CareProvider(
+            name: "Dr. Helen Brooks",
+            specialty: "Primary Care",
+            phone: "+1 555-0177",
+            clinic: "Neighborhood Family Practice",
+            parent: dad
+        )
+        for provider in [cardiologist, endocrinologist, gp] {
+            context.insert(provider)
+        }
+
+        let momVisit = Appointment(
+            title: "Cardiology follow-up",
+            scheduledAt: calendar.date(byAdding: .day, value: 18, to: today)!.addingTimeInterval(10 * 3600),
+            location: "Bay Heart Clinic",
+            notes: "Bring latest BP log and lab printout.",
+            reminderMinutesBefore: 60 * 24,
+            parent: mom,
+            provider: cardiologist
+        )
+        let dadVisit = Appointment(
+            title: "Annual checkup",
+            scheduledAt: calendar.date(byAdding: .day, value: 32, to: today)!.addingTimeInterval(9.5 * 3600),
+            location: "Neighborhood Family Practice",
+            reminderMinutesBefore: 60 * 24 * 2,
+            parent: dad,
+            provider: gp
+        )
+        context.insert(momVisit)
+        context.insert(dadVisit)
     }
 
     // MARK: - Vitals
@@ -272,23 +330,34 @@ enum SampleData {
         let atorvastatin = Medication(
             name: "Atorvastatin",
             dosage: "20mg",
-            frequency: "Daily",
+            frequency: MedicationFrequency.monthly.rawValue,
             reminderHours: [21],
+            scheduleDayOfMonth: 1,
             parent: parent
         )
         atorvastatin.createdAt = calendar.date(byAdding: .month, value: -10, to: today)!
 
+        let b12 = Medication(
+            name: "Vitamin B12",
+            dosage: "1000 mcg",
+            frequency: MedicationFrequency.weekly.rawValue,
+            reminderHours: [9],
+            scheduleWeekday: 2, // Monday
+            parent: parent
+        )
+        b12.createdAt = calendar.date(byAdding: .month, value: -6, to: today)!
+
         let discontinued = Medication(
             name: "Low-Dose Aspirin",
             dosage: "81mg",
-            frequency: "Daily",
+            frequency: MedicationFrequency.daily.rawValue,
             reminderHours: [8],
             isActive: false,
             parent: parent
         )
         discontinued.createdAt = yearAgo
 
-        for med in [lisinopril, metformin, atorvastatin, discontinued] {
+        for med in [lisinopril, metformin, atorvastatin, b12, discontinued] {
             context.insert(med)
         }
 
@@ -296,6 +365,7 @@ enum SampleData {
             DemoMedication(medication: lisinopril, activeUntilDayIndex: nil),
             DemoMedication(medication: metformin, activeUntilDayIndex: nil),
             DemoMedication(medication: atorvastatin, activeUntilDayIndex: nil),
+            DemoMedication(medication: b12, activeUntilDayIndex: nil),
             DemoMedication(medication: discontinued, activeUntilDayIndex: demoYearDays - 90)
         ]
     }
@@ -367,6 +437,13 @@ enum SampleData {
 
                 let day = calendar.date(byAdding: .day, value: dayOffset, to: today)!
                 guard day >= calendar.startOfDay(for: med.createdAt) else { continue }
+                guard MedicationSchedule.isDue(
+                    frequency: med.frequencyKind,
+                    on: day,
+                    weekday: med.scheduleWeekday,
+                    dayOfMonth: med.scheduleDayOfMonth,
+                    calendar: calendar
+                ) || med.frequencyKind == .asNeeded else { continue }
 
                 for (slot, hour) in med.reminderHours.enumerated() {
                     let roll = (dayIndex * 13 + slot * 5 + med.name.count) % 100
@@ -380,7 +457,7 @@ enum SampleData {
                     }
 
                     // PRN ibuprofen — only log on ~30% of days
-                    if med.name == "Ibuprofen", roll % 3 != 0 { continue }
+                    if med.frequencyKind == .asNeeded, roll % 3 != 0 { continue }
 
                     let takenAt = timestamp(on: day, hour: hour, minute: (roll % 45), calendar: calendar)
                     context.insert(MedicationLog(status: status, takenAt: takenAt, medication: med))

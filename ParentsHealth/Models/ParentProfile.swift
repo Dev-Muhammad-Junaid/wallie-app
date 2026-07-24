@@ -23,6 +23,12 @@ final class ParentProfile {
     @Relationship(deleteRule: .cascade, inverse: \LabReport.parent)
     var labReports: [LabReport]
 
+    @Relationship(deleteRule: .cascade, inverse: \CareProvider.parent)
+    var careProviders: [CareProvider]
+
+    @Relationship(deleteRule: .cascade, inverse: \Appointment.parent)
+    var appointments: [Appointment]
+
     init(
         name: String,
         dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -70, to: Date()) ?? Date(),
@@ -46,6 +52,18 @@ final class ParentProfile {
         self.metrics = []
         self.medications = []
         self.labReports = []
+        self.careProviders = []
+        self.appointments = []
+    }
+
+    var upcomingAppointments: [Appointment] {
+        appointments
+            .filter(\.isUpcoming)
+            .sorted { $0.scheduledAt < $1.scheduledAt }
+    }
+
+    var nextAppointment: Appointment? {
+        upcomingAppointments.first
     }
 
     var initials: String {

@@ -9,6 +9,7 @@ struct ParentsListView: View {
     @Query(sort: \ParentProfile.name) private var parents: [ParentProfile]
     @State private var parentToEdit: ParentProfile?
     @State private var parentToDelete: ParentProfile?
+    @State private var showCareNetwork = false
 
     init(showAddParent: Binding<Bool> = .constant(false)) {
         _showAddParent = showAddParent
@@ -41,6 +42,33 @@ struct ParentsListView: View {
                     .padding(.top, 16)
                 } else {
                     LazyVStack(spacing: 14) {
+                        Button {
+                            FeedbackService.lightTap()
+                            showCareNetwork = true
+                        } label: {
+                            GlassCard(padding: 14) {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "stethoscope")
+                                        .font(.title3)
+                                        .foregroundStyle(AppTheme.softMint)
+                                        .frame(width: 28)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Care Network")
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundStyle(.white)
+                                        Text("Doctors, contacts, and appointments")
+                                            .font(.caption)
+                                            .foregroundStyle(.white.opacity(0.5))
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundStyle(.white.opacity(0.35))
+                                }
+                            }
+                        }
+                        .buttonStyle(.plain)
+
                         ForEach(parents) { parent in
                             NavigationLink {
                                 ParentDetailView(parent: parent)
@@ -63,6 +91,10 @@ struct ParentsListView: View {
             .navigationTitle("Parents")
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
+        }
+        .sheet(isPresented: $showCareNetwork) {
+            CareProvidersView()
+                .environmentObject(parentStore)
         }
         .sheet(item: $parentToEdit) { parent in
             ParentFormView(parent: parent)
@@ -90,6 +122,9 @@ struct ParentsListView: View {
     private func confirmDelete(_ parent: ParentProfile) {
         Task {
             await NotificationService.shared.cancelMedicationReminders(for: parent.medications)
+            for appointment in parent.appointments {
+                await NotificationService.shared.cancelAppointmentReminder(for: appointment)
+            }
         }
         modelContext.delete(parent)
         parentStore.ensureSelection(from: parents.filter { $0.id != parent.id })

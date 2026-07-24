@@ -16,14 +16,30 @@ struct ParentsHealthApp: App {
             Medication.self,
             MedicationLog.self,
             LabReport.self,
-            LabResult.self
+            LabResult.self,
+            CareProvider.self,
+            Appointment.self
         ])
         let inMemory = ProcessInfo.processInfo.arguments.contains("UI_TESTING")
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
+
+        // CloudKit keeps the same iCloud account in sync across family devices.
+        // UI tests and explicit opt-out stay local-only.
+        let useCloudKit = !inMemory && AppSettings.iCloudSyncEnabled
+        let config = ModelConfiguration(
+            schema: schema,
+            isStoredInMemoryOnly: inMemory,
+            cloudKitDatabase: useCloudKit ? .automatic : .none
+        )
         do {
             return try ModelContainer(for: schema, configurations: config)
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            // Fall back to local store if CloudKit / migration fails (e.g. unsigned builds).
+            let local = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory, cloudKitDatabase: .none)
+            do {
+                return try ModelContainer(for: schema, configurations: local)
+            } catch {
+                fatalError("Could not create ModelContainer: \(error)")
+            }
         }
     }()
 

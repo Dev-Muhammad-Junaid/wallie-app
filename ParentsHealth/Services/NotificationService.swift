@@ -33,11 +33,25 @@ final class NotificationService: ObservableObject {
 
         await cancelMedicationReminders(for: medication)
 
+        let frequency = medication.frequencyKind
+        guard frequency != .asNeeded, !medication.reminderHours.isEmpty else { return }
+
         let parentName = medication.parent?.name ?? "your parent"
         for hour in medication.reminderHours {
             var dateComponents = DateComponents()
             dateComponents.hour = hour
             dateComponents.minute = 0
+
+            switch frequency {
+            case .daily, .twiceDaily:
+                break
+            case .weekly:
+                dateComponents.weekday = medication.scheduleWeekday
+            case .monthly:
+                dateComponents.day = medication.scheduleDayOfMonth
+            case .asNeeded:
+                continue
+            }
 
             let content = UNMutableNotificationContent()
             content.title = "Medication Reminder"
@@ -58,10 +72,49 @@ final class NotificationService: ObservableObject {
     }
 
     func cancelMedicationReminders(for medication: Medication) async {
-        let identifiers = medication.reminderHours.map {
+        // Cancel a wider hour range in case reminder hours changed.
+        let identifiers = (0..<24).map {
             Self.medicationIdentifier(medicationId: medication.id, hour: $0)
         }
         center.removePendingNotificationRequests(withIdentifiers: identifiers)
+    }
+
+    func scheduleAppointmentReminder(for appointment: Appointment) async {
+        guard isAuthorized else { return }
+        await cancelAppointmentReminder(for: appointment)
+
+        let minutes = appointment.reminderMinutesBefore
+        guard minutes > 0 else { return }
+
+        let fireDate = appointment.scheduledAt.addingTimeInterval(TimeInterval(-minutes * 60))
+        guard fireDate > Date() else { return }
+
+        let parentName = appointment.parent?.name ?? "your parent"
+        let content = UNMutableNotificationContent()
+        content.title = "Upcoming appointment"
+        content.body = "\(appointment.displayTitle) for \(parentName) · \(appointment.scheduledAt.formatted(date: .abbreviated, time: .shortened))"
+        content.sound = .default
+        content.categoryIdentifier = "APPOINTMENT_REMINDER"
+        content.userInfo = [
+            "type": "appointment",
+            "appointmentId": appointment.id.uuidString,
+            "parentId": appointment.parent?.id.uuidString ?? ""
+        ]
+
+        let components = Calendar.current.dateComponents(
+            [.year, .month, .day, .hour, .minute],
+            from: fireDate
+        )
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        let identifier = Self.appointmentIdentifier(appointmentId: appointment.id)
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+        try? await center.add(request)
+    }
+
+    func cancelAppointmentReminder(for appointment: Appointment) async {
+        center.removePendingNotificationRequests(
+            withIdentifiers: [Self.appointmentIdentifier(appointmentId: appointment.id)]
+        )
     }
 
     func cancelAllScheduledNotifications() async {
@@ -108,6 +161,9 @@ final class NotificationService: ObservableObject {
         for medication in medications {
             await scheduleMedicationReminders(for: medication)
         }
+        for appointment in parents.flatMap(\.appointments).filter(\.isUpcoming) {
+            await scheduleAppointmentReminder(for: appointment)
+        }
         if AppSettings.weeklySummaryEnabled {
             await scheduleWeeklySummary(for: parents)
         }
@@ -143,6 +199,10 @@ final class NotificationService: ObservableObject {
 
     static func medicationIdentifier(medicationId: UUID, hour: Int) -> String {
         "med-\(medicationId.uuidString)-\(hour)"
+    }
+
+    static func appointmentIdentifier(appointmentId: UUID) -> String {
+        "appointment-\(appointmentId.uuidString)"
     }
 
     private func weeklySummaryBody(parents: [ParentProfile]) -> String {

@@ -160,22 +160,40 @@ struct MedicationsView: View {
 
     @ViewBuilder
     private func doseSlotsSection(_ medication: Medication) -> some View {
-        let hours = medication.reminderHours.sorted()
-        if hours.isEmpty {
-            HStack(spacing: 10) {
-                Button("Taken") { logDose(medication, status: .taken, hour: Calendar.current.component(.hour, from: Date())) }
-                    .buttonStyle(MedActionStyle(color: AppTheme.softMint))
-                Button("Skipped") { logDose(medication, status: .skipped, hour: Calendar.current.component(.hour, from: Date())) }
-                    .buttonStyle(MedActionStyle(color: AppTheme.warmCoral.opacity(0.8)))
-            }
-        } else {
+        if medication.frequencyKind == .asNeeded {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Today's doses")
+                Text("As needed — log when taken")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.white.opacity(0.55))
+                HStack(spacing: 10) {
+                    Button("Taken") {
+                        logDose(medication, status: .taken, hour: Calendar.current.component(.hour, from: Date()))
+                    }
+                    .buttonStyle(MedActionStyle(color: AppTheme.softMint))
+                }
+            }
+        } else if !medication.isDueToday {
+            Text("Not due today · \(medication.scheduleSummary)")
+                .font(.caption)
+                .foregroundStyle(.white.opacity(0.5))
+        } else {
+            let hours = medication.reminderHours.sorted()
+            if hours.isEmpty {
+                HStack(spacing: 10) {
+                    Button("Taken") { logDose(medication, status: .taken, hour: Calendar.current.component(.hour, from: Date())) }
+                        .buttonStyle(MedActionStyle(color: AppTheme.softMint))
+                    Button("Skipped") { logDose(medication, status: .skipped, hour: Calendar.current.component(.hour, from: Date())) }
+                        .buttonStyle(MedActionStyle(color: AppTheme.warmCoral.opacity(0.8)))
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Today's doses")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.55))
 
-                ForEach(hours, id: \.self) { hour in
-                    doseSlotRow(medication: medication, hour: hour)
+                    ForEach(hours, id: \.self) { hour in
+                        doseSlotRow(medication: medication, hour: hour)
+                    }
                 }
             }
         }
@@ -268,7 +286,7 @@ struct MedicationRow: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.white)
                 }
-                Text("\(medication.dosage) · \(medication.frequency)")
+                Text("\(medication.dosage) · \(medication.scheduleSummary)")
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.55))
             }

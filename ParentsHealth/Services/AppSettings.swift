@@ -37,6 +37,18 @@ enum AppSettings {
         set { UserDefaults.standard.set(newValue, forKey: healthAlertsEnabledKey) }
     }
 
+    private static let iCloudSyncEnabledKey = "iCloudSyncEnabled"
+
+    /// Sync parents, meds, labs, and appointments across devices signed into the same iCloud account.
+    /// Changing this requires relaunching the app to rebuild the SwiftData container.
+    static var iCloudSyncEnabled: Bool {
+        get {
+            if UserDefaults.standard.object(forKey: iCloudSyncEnabledKey) == nil { return true }
+            return UserDefaults.standard.bool(forKey: iCloudSyncEnabledKey)
+        }
+        set { UserDefaults.standard.set(newValue, forKey: iCloudSyncEnabledKey) }
+    }
+
     private static let useRemoteLabAPIKey = "useRemoteLabAPI"
     private static let labAPIEndpointKey = "labAPIEndpoint"
     private static let labAPIKeyKey = "labAPIKey"

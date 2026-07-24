@@ -8,6 +8,7 @@ private enum PresentedSheet: String, Identifiable {
     case addParent
     case settings
     case healthAlerts
+    case careNetwork
 
     var id: String { rawValue }
 }
@@ -31,7 +32,8 @@ struct MainTabView: View {
                     DashboardView(
                         onOpenSettings: { presentedSheet = .settings },
                         onOpenCharts: { metric in navigationStore.openCharts(metric: metric) },
-                        onOpenAlerts: { presentedSheet = .healthAlerts }
+                        onOpenAlerts: { presentedSheet = .healthAlerts },
+                        onOpenCare: { presentedSheet = .careNetwork }
                     )
                 case .parents:
                     ParentsListView(showAddParent: Binding(
@@ -82,6 +84,12 @@ struct MainTabView: View {
                 navigationStore.showAddMedication = false
             }
         }
+        .onChange(of: navigationStore.showCareNetwork) { _, show in
+            if show {
+                presentedSheet = .careNetwork
+                navigationStore.showCareNetwork = false
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .appNavigationRequested)) { notification in
             handleNotificationNavigation(notification)
         }
@@ -118,6 +126,9 @@ struct MainTabView: View {
                 .environmentObject(parentStore)
         case .healthAlerts:
             HealthAlertsView()
+                .environmentObject(parentStore)
+        case .careNetwork:
+            CareProvidersView()
                 .environmentObject(parentStore)
         }
     }
@@ -196,6 +207,8 @@ struct MainTabView: View {
             presentedSheet = .healthAlerts
         case "medication":
             selectTab(.medications, animated: true)
+        case "appointment":
+            presentedSheet = .careNetwork
         case "weekly_summary":
             selectTab(.dashboard, animated: true)
         default:

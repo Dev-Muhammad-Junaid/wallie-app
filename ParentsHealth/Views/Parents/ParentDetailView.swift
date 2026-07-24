@@ -10,6 +10,8 @@ struct ParentDetailView: View {
             VStack(alignment: .leading, spacing: AppTheme.sectionSpacing) {
                 heroHeader
                 vitalsSection
+                upcomingAppointmentsSection
+                doctorsSection
                 medicationsSection
                 labReportsSection
                 infoSection
@@ -77,6 +79,76 @@ struct ParentDetailView: View {
                                 .foregroundStyle(metric.isInNormalRange ? .white : AppTheme.warmCoral)
                         }
                         if metric.id != sorted.last?.id {
+                            Divider().overlay(Color.white.opacity(0.1))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var upcomingAppointmentsSection: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Upcoming Appointments")
+                    .font(.sectionHeadline)
+                    .foregroundStyle(.white)
+
+                let upcoming = parent.upcomingAppointments.prefix(3)
+                if upcoming.isEmpty {
+                    Text("No visits scheduled")
+                        .foregroundStyle(.white.opacity(0.5))
+                } else {
+                    ForEach(Array(upcoming), id: \.id) { appointment in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(appointment.displayTitle)
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(.white)
+                            Text("\(appointment.scheduledAt.formatted(date: .abbreviated, time: .shortened)) · \(appointment.providerName)")
+                                .font(.caption)
+                                .foregroundStyle(.white.opacity(0.5))
+                        }
+                        if appointment.id != upcoming.last?.id {
+                            Divider().overlay(Color.white.opacity(0.1))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var doctorsSection: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Doctors")
+                    .font(.sectionHeadline)
+                    .foregroundStyle(.white)
+
+                if parent.careProviders.isEmpty {
+                    Text("No doctors saved")
+                        .foregroundStyle(.white.opacity(0.5))
+                } else {
+                    ForEach(parent.careProviders.sorted(by: { $0.name < $1.name }), id: \.id) { provider in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(provider.name)
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundStyle(.white)
+                                Text(provider.displaySpecialty)
+                                    .font(.caption)
+                                    .foregroundStyle(.white.opacity(0.5))
+                            }
+                            Spacer()
+                            if let url = provider.phoneURL {
+                                Link(destination: url) {
+                                    Image(systemName: "phone.fill")
+                                        .foregroundStyle(AppTheme.softMint)
+                                        .padding(10)
+                                        .background(Circle().fill(AppTheme.softMint.opacity(0.2)))
+                                }
+                            }
+                        }
+                        if provider.id != parent.careProviders.sorted(by: { $0.name < $1.name }).last?.id {
                             Divider().overlay(Color.white.opacity(0.1))
                         }
                     }

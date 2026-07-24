@@ -26,9 +26,12 @@ app_files = [
     ("Models", "Models/ParentProfile.swift", "ParentProfile.swift"),
     ("Models", "Models/HealthMetric.swift", "HealthMetric.swift"),
     ("Models", "Models/Medication.swift", "Medication.swift"),
+    ("Models", "Models/MedicationFrequency.swift", "MedicationFrequency.swift"),
     ("Models", "Models/LabReport.swift", "LabReport.swift"),
     ("Models", "Models/LabTestKey.swift", "LabTestKey.swift"),
     ("Models", "Models/HealthAlert.swift", "HealthAlert.swift"),
+    ("Models", "Models/CareProvider.swift", "CareProvider.swift"),
+    ("Models", "Models/Appointment.swift", "Appointment.swift"),
     ("Design", "Design/AppTheme.swift", "AppTheme.swift"),
     ("Design", "Design/LiquidGlassComponents.swift", "LiquidGlassComponents.swift"),
     ("Design", "Design/SharedComponents.swift", "SharedComponents.swift"),
@@ -38,6 +41,9 @@ app_files = [
     ("Parents", "Views/Parents/ParentsListView.swift", "ParentsListView.swift"),
     ("Parents", "Views/Parents/ParentDetailView.swift", "ParentDetailView.swift"),
     ("Parents", "Views/Parents/ParentFormView.swift", "ParentFormView.swift"),
+    ("Care", "Views/Care/CareProvidersView.swift", "CareProvidersView.swift"),
+    ("Care", "Views/Care/AddCareProviderView.swift", "AddCareProviderView.swift"),
+    ("Care", "Views/Care/AddAppointmentView.swift", "AddAppointmentView.swift"),
     ("Charts", "Views/Charts/ChartsView.swift", "ChartsView.swift"),
     ("Medications", "Views/Medications/MedicationsView.swift", "MedicationsView.swift"),
     ("Medications", "Views/Medications/AddMedicationView.swift", "AddMedicationView.swift"),
@@ -51,6 +57,7 @@ app_files = [
     ("Services", "Services/MedicationAdherenceCalculator.swift", "MedicationAdherenceCalculator.swift"),
     ("Services", "Services/LabReportParser.swift", "LabReportParser.swift"),
     ("Services", "Services/LabReportOCRService.swift", "LabReportOCRService.swift"),
+    ("Services", "Services/MedicationOCRService.swift", "MedicationOCRService.swift"),
     ("Services", "Services/NotificationService.swift", "NotificationService.swift"),
     ("Services", "Services/HealthKitService.swift", "HealthKitService.swift"),
     ("Services", "Services/ReportExportService.swift", "ReportExportService.swift"),
@@ -69,6 +76,8 @@ test_files = [
     ("ParentsHealthTests/LabReportParserTests.swift", "LabReportParserTests.swift"),
     ("ParentsHealthTests/MetricTypeTests.swift", "MetricTypeTests.swift"),
     ("ParentsHealthTests/MedicationAdherenceTests.swift", "MedicationAdherenceTests.swift"),
+    ("ParentsHealthTests/MedicationScheduleTests.swift", "MedicationScheduleTests.swift"),
+    ("ParentsHealthTests/MedicationOCRServiceTests.swift", "MedicationOCRServiceTests.swift"),
     ("ParentsHealthTests/ReportExportServiceTests.swift", "ReportExportServiceTests.swift"),
     ("ParentsHealthTests/LabTrendServiceTests.swift", "LabTrendServiceTests.swift"),
     ("ParentsHealthTests/LabAnalysisServiceTests.swift", "LabAnalysisServiceTests.swift"),
@@ -87,7 +96,7 @@ P = {k: g.id(k) for k in [
     'PROJ_CL','APP_CL','TEST_CL','UITEST_CL','DBG_PROJ','REL_PROJ','DBG_APP','REL_APP','DBG_TEST','REL_TEST',
     'DBG_UITEST','REL_UITEST','TEST_DEP','UITEST_DEP','PROXY_TEST','PROXY_UITEST'
 ]}
-GIDS = {k: g.id(f'grp_{k}') for k in ['App','Models','Design','Views','Services','Dashboard','Parents','Charts','Medications','Log','Labs','Settings','Alerts']}
+GIDS = {k: g.id(f'grp_{k}') for k in ['App','Models','Design','Views','Services','Dashboard','Parents','Care','Charts','Medications','Log','Labs','Settings','Alerts']}
 
 lines = []
 L = lines.append
@@ -143,12 +152,13 @@ L(f'\t\t{P["PH"]} = {{isa = PBXGroup; children = ({GIDS["App"]} /* App */, {GIDS
 
 subgroups = {
     'App': [('App/ParentsHealthApp.swift','ParentsHealthApp.swift'),('App/AppDelegate.swift','AppDelegate.swift')],
-    'Models': [(f'Models/{n}',n) for n in ['MetricType.swift','ParentProfile.swift','HealthMetric.swift','Medication.swift','LabReport.swift','LabTestKey.swift','HealthAlert.swift']],
+    'Models': [(f'Models/{n}',n) for n in ['MetricType.swift','ParentProfile.swift','HealthMetric.swift','Medication.swift','MedicationFrequency.swift','LabReport.swift','LabTestKey.swift','HealthAlert.swift','CareProvider.swift','Appointment.swift']],
     'Design': [('Design/AppTheme.swift','AppTheme.swift'),('Design/LiquidGlassComponents.swift','LiquidGlassComponents.swift'),('Design/SharedComponents.swift','SharedComponents.swift')],
-    'Services': [(f'Services/{n}',n) for n in ['SampleData.swift','HealthScoreCalculator.swift','MedicationAdherenceCalculator.swift','LabReportParser.swift','LabReportOCRService.swift','NotificationService.swift','HealthKitService.swift','ReportExportService.swift','AppSettings.swift','LabTrendService.swift','HealthAlertService.swift','LabAnalysisService.swift','LabReportRepository.swift','SelectedParentStore.swift','FeedbackService.swift','AppNavigationStore.swift']],
+    'Services': [(f'Services/{n}',n) for n in ['SampleData.swift','HealthScoreCalculator.swift','MedicationAdherenceCalculator.swift','LabReportParser.swift','LabReportOCRService.swift','MedicationOCRService.swift','NotificationService.swift','HealthKitService.swift','ReportExportService.swift','AppSettings.swift','LabTrendService.swift','HealthAlertService.swift','LabAnalysisService.swift','LabReportRepository.swift','SelectedParentStore.swift','FeedbackService.swift','AppNavigationStore.swift']],
     'Dashboard': [('Views/Dashboard/DashboardView.swift','DashboardView.swift')],
     'Alerts': [('Views/Alerts/HealthAlertsView.swift','HealthAlertsView.swift')],
     'Parents': [('Views/Parents/ParentsListView.swift','ParentsListView.swift'),('Views/Parents/ParentDetailView.swift','ParentDetailView.swift'),('Views/Parents/ParentFormView.swift','ParentFormView.swift')],
+    'Care': [('Views/Care/CareProvidersView.swift','CareProvidersView.swift'),('Views/Care/AddCareProviderView.swift','AddCareProviderView.swift'),('Views/Care/AddAppointmentView.swift','AddAppointmentView.swift')],
     'Charts': [('Views/Charts/ChartsView.swift','ChartsView.swift')],
     'Medications': [('Views/Medications/MedicationsView.swift','MedicationsView.swift'),('Views/Medications/AddMedicationView.swift','AddMedicationView.swift')],
     'Log': [('Views/Log/QuickLogView.swift','QuickLogView.swift')],
@@ -156,7 +166,7 @@ subgroups = {
     'Settings': [('Views/Settings/SettingsView.swift','SettingsView.swift')],
 }
 
-L(f'\t\t{GIDS["Views"]} = {{isa = PBXGroup; children = ({fid("Views/MainTabView.swift")[0]} /* MainTabView.swift */, {GIDS["Dashboard"]} /* Dashboard */, {GIDS["Alerts"]} /* Alerts */, {GIDS["Parents"]} /* Parents */, {GIDS["Charts"]} /* Charts */, {GIDS["Medications"]} /* Medications */, {GIDS["Log"]} /* Log */, {GIDS["Labs"]} /* Labs */, {GIDS["Settings"]} /* Settings */); path = Views; sourceTree = "<group>"; }};')
+L(f'\t\t{GIDS["Views"]} = {{isa = PBXGroup; children = ({fid("Views/MainTabView.swift")[0]} /* MainTabView.swift */, {GIDS["Dashboard"]} /* Dashboard */, {GIDS["Alerts"]} /* Alerts */, {GIDS["Parents"]} /* Parents */, {GIDS["Care"]} /* Care */, {GIDS["Charts"]} /* Charts */, {GIDS["Medications"]} /* Medications */, {GIDS["Log"]} /* Log */, {GIDS["Labs"]} /* Labs */, {GIDS["Settings"]} /* Settings */); path = Views; sourceTree = "<group>"; }};')
 for gn, items in subgroups.items():
     kids = ', '.join(f'{fid(p)[0]} /* {n} */' for p,n in items)
     L(f'\t\t{GIDS[gn]} = {{isa = PBXGroup; children = ({kids}); path = {gn}; sourceTree = "<group>"; }};')

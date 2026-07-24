@@ -41,6 +41,7 @@ final class AppNavigationStore: ObservableObject {
     @Published var chartsNavigationToken = 0
     @Published var showHealthAlerts = false
     @Published var showAddMedication = false
+    @Published var showCareNetwork = false
 
     func openCharts(metric: MetricType? = nil) {
         chartsDataSource = .vitals
@@ -59,6 +60,11 @@ final class AppNavigationStore: ObservableObject {
     func openHealthAlerts() {
         requestedTab = .dashboard
         showHealthAlerts = true
+    }
+
+    func openCareNetwork() {
+        requestedTab = .parents
+        showCareNetwork = true
     }
 
     func openMedications() {

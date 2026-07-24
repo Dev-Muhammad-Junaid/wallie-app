@@ -5,6 +5,7 @@ struct DashboardView: View {
     var onOpenSettings: () -> Void = {}
     var onOpenCharts: (MetricType?) -> Void = { _ in }
     var onOpenAlerts: () -> Void = {}
+    var onOpenCare: () -> Void = {}
 
     @EnvironmentObject private var parentStore: SelectedParentStore
     @Query(sort: \ParentProfile.name) private var parents: [ParentProfile]
@@ -132,6 +133,57 @@ struct DashboardView: View {
 
             DashboardAlertsSummary(parent: parent) {
                 onOpenAlerts()
+            }
+
+            if let next = parent.nextAppointment {
+                Button {
+                    onOpenCare()
+                } label: {
+                    GlassCard {
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack {
+                                Text("Next Appointment")
+                                    .font(.sectionHeadline)
+                                    .foregroundStyle(.white)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.white.opacity(0.35))
+                            }
+                            Text(next.displayTitle)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.white)
+                            Text("\(next.scheduledAt.formatted(date: .abbreviated, time: .shortened)) · \(next.providerName)")
+                                .font(.caption)
+                                .foregroundStyle(.white.opacity(0.55))
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+            } else {
+                Button {
+                    onOpenCare()
+                } label: {
+                    GlassCard {
+                        HStack(spacing: 12) {
+                            Image(systemName: "stethoscope")
+                                .foregroundStyle(AppTheme.softMint)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Care Network")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(.white)
+                                Text("Doctors, contacts, and visits")
+                                    .font(.caption)
+                                    .foregroundStyle(.white.opacity(0.5))
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.white.opacity(0.35))
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
             }
 
             GlassCard {

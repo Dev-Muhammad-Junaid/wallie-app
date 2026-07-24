@@ -25,6 +25,7 @@ struct SettingsView: View {
     @State private var labAPIKey = AppSettings.labAPIKey
     @State private var showDemoDataConfirm = false
     @State private var isLoadingDemoData = false
+    @State private var iCloudSyncEnabled = AppSettings.iCloudSyncEnabled
 
     var body: some View {
         NavigationStack {
@@ -220,10 +221,26 @@ struct SettingsView: View {
                     }
                 }
 
+                Section("Family Sync") {
+                    Toggle("iCloud Sync", isOn: $iCloudSyncEnabled)
+                        .onChange(of: iCloudSyncEnabled) { _, enabled in
+                            AppSettings.iCloudSyncEnabled = enabled
+                            statusMessage = "Relaunch the app to \(enabled ? "enable" : "disable") iCloud sync."
+                        }
+                    Text("Keeps parents, meds, labs, doctors, and appointments in sync on every device signed into the same iCloud account — so siblings sharing one Apple ID (or a shared family device login) see the same care data.")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+
                 Section("Privacy") {
-                    Label("All data stays on this device", systemImage: "lock.shield.fill")
-                    Label("Lab analysis runs on-device", systemImage: "cpu")
-                    Label("No cloud sync or analytics", systemImage: "icloud.slash")
+                    Label("Health data stored with SwiftData", systemImage: "lock.shield.fill")
+                    Label("Lab & medication OCR runs on-device", systemImage: "cpu")
+                    Label(
+                        iCloudSyncEnabled
+                            ? "Optional iCloud sync across your devices"
+                            : "Cloud sync is off on this device",
+                        systemImage: iCloudSyncEnabled ? "icloud.fill" : "icloud.slash"
+                    )
                 }
 
                 if !statusMessage.isEmpty {
