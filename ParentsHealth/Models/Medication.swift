@@ -11,9 +11,9 @@ final class Medication {
     var isActive: Bool
     var createdAt: Date
     /// Calendar weekday (1 = Sunday … 7 = Saturday) used when frequency is Weekly.
-    var scheduleWeekday: Int
+    var scheduleWeekday: Int = 2
     /// Day of month (1–28 recommended) used when frequency is Monthly.
-    var scheduleDayOfMonth: Int
+    var scheduleDayOfMonth: Int = 1
 
     var parent: ParentProfile?
 

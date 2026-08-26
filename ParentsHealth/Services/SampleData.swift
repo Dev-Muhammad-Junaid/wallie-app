@@ -8,7 +8,8 @@ enum SampleData {
     static let previewContainer: ModelContainer = {
         let schema = Schema([
             ParentProfile.self, HealthMetric.self, Medication.self,
-            MedicationLog.self, LabReport.self, LabResult.self
+            MedicationLog.self, LabReport.self, LabResult.self,
+            CareProvider.self, Appointment.self
         ])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try! ModelContainer(for: schema, configurations: config)

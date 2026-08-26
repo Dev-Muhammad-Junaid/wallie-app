@@ -21,6 +21,12 @@ struct MainTabView: View {
 
     @State private var selectedTab: AppTab = .dashboard
     @State private var presentedSheet: PresentedSheet?
+    @State private var showOnboarding = shouldPresentOnboarding()
+
+    private static func shouldPresentOnboarding() -> Bool {
+        guard !ProcessInfo.processInfo.arguments.contains("UI_TESTING") else { return false }
+        return !AppSettings.hasCompletedOnboarding
+    }
 
     var body: some View {
         ZStack {
@@ -65,6 +71,11 @@ struct MainTabView: View {
         }
         .sheet(item: $presentedSheet) { sheet in
             sheetContent(for: sheet)
+        }
+        .fullScreenCover(isPresented: $showOnboarding) {
+            OnboardingView {
+                showOnboarding = false
+            }
         }
         .preferredColorScheme(.dark)
         .onChange(of: navigationStore.requestedTab) { _, tab in

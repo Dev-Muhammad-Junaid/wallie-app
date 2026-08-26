@@ -36,6 +36,7 @@ app_files = [
     ("Design", "Design/LiquidGlassComponents.swift", "LiquidGlassComponents.swift"),
     ("Design", "Design/SharedComponents.swift", "SharedComponents.swift"),
     ("Views", "Views/MainTabView.swift", "MainTabView.swift"),
+    ("Onboarding", "Views/Onboarding/OnboardingView.swift", "OnboardingView.swift"),
     ("Dashboard", "Views/Dashboard/DashboardView.swift", "DashboardView.swift"),
     ("Alerts", "Views/Alerts/HealthAlertsView.swift", "HealthAlertsView.swift"),
     ("Parents", "Views/Parents/ParentsListView.swift", "ParentsListView.swift"),
@@ -96,7 +97,7 @@ P = {k: g.id(k) for k in [
     'PROJ_CL','APP_CL','TEST_CL','UITEST_CL','DBG_PROJ','REL_PROJ','DBG_APP','REL_APP','DBG_TEST','REL_TEST',
     'DBG_UITEST','REL_UITEST','TEST_DEP','UITEST_DEP','PROXY_TEST','PROXY_UITEST'
 ]}
-GIDS = {k: g.id(f'grp_{k}') for k in ['App','Models','Design','Views','Services','Dashboard','Parents','Care','Charts','Medications','Log','Labs','Settings','Alerts']}
+GIDS = {k: g.id(f'grp_{k}') for k in ['App','Models','Design','Views','Services','Dashboard','Parents','Care','Charts','Medications','Log','Labs','Settings','Alerts','Onboarding']}
 
 lines = []
 L = lines.append
@@ -164,9 +165,10 @@ subgroups = {
     'Log': [('Views/Log/QuickLogView.swift','QuickLogView.swift')],
     'Labs': [('Views/Labs/LabReportsView.swift','LabReportsView.swift'),('Views/Labs/LabReportDetailView.swift','LabReportDetailView.swift'),('Views/Labs/ImportLabReportView.swift','ImportLabReportView.swift')],
     'Settings': [('Views/Settings/SettingsView.swift','SettingsView.swift')],
+    'Onboarding': [('Views/Onboarding/OnboardingView.swift','OnboardingView.swift')],
 }
 
-L(f'\t\t{GIDS["Views"]} = {{isa = PBXGroup; children = ({fid("Views/MainTabView.swift")[0]} /* MainTabView.swift */, {GIDS["Dashboard"]} /* Dashboard */, {GIDS["Alerts"]} /* Alerts */, {GIDS["Parents"]} /* Parents */, {GIDS["Care"]} /* Care */, {GIDS["Charts"]} /* Charts */, {GIDS["Medications"]} /* Medications */, {GIDS["Log"]} /* Log */, {GIDS["Labs"]} /* Labs */, {GIDS["Settings"]} /* Settings */); path = Views; sourceTree = "<group>"; }};')
+L(f'\t\t{GIDS["Views"]} = {{isa = PBXGroup; children = ({fid("Views/MainTabView.swift")[0]} /* MainTabView.swift */, {GIDS["Onboarding"]} /* Onboarding */, {GIDS["Dashboard"]} /* Dashboard */, {GIDS["Alerts"]} /* Alerts */, {GIDS["Parents"]} /* Parents */, {GIDS["Care"]} /* Care */, {GIDS["Charts"]} /* Charts */, {GIDS["Medications"]} /* Medications */, {GIDS["Log"]} /* Log */, {GIDS["Labs"]} /* Labs */, {GIDS["Settings"]} /* Settings */); path = Views; sourceTree = "<group>"; }};')
 for gn, items in subgroups.items():
     kids = ', '.join(f'{fid(p)[0]} /* {n} */' for p,n in items)
     L(f'\t\t{GIDS[gn]} = {{isa = PBXGroup; children = ({kids}); path = {gn}; sourceTree = "<group>"; }};')
@@ -231,7 +233,7 @@ L('\n/* Begin XCBuildConfiguration section */')
 for cid, name in [(P['DBG_PROJ'],'Debug'),(P['REL_PROJ'],'Release')]:
     L(f'\t\t{cid} /* {name} */ = {{isa = XCBuildConfiguration; buildSettings = {{IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; ENABLE_TESTABILITY = YES;}}; name = {name}; }};')
 for cid, name in [(P['DBG_APP'],'Debug'),(P['REL_APP'],'Release')]:
-    L(f'\t\t{cid} /* {name} */ = {{isa = XCBuildConfiguration; buildSettings = {{PRODUCT_NAME = ParentsHealth; PRODUCT_BUNDLE_IDENTIFIER = com.widgetsflow.parentshealth; INFOPLIST_FILE = ParentsHealth/Info.plist; CODE_SIGN_ENTITLEMENTS = ParentsHealth/ParentsHealth.entitlements; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2";}}; name = {name}; }};')
+    L(f'\t\t{cid} /* {name} */ = {{isa = XCBuildConfiguration; buildSettings = {{PRODUCT_NAME = ParentsHealth; PRODUCT_BUNDLE_IDENTIFIER = com.widgetsflow.parentshealth; INFOPLIST_FILE = ParentsHealth/Info.plist; CODE_SIGN_ENTITLEMENTS = ParentsHealth/ParentsHealth.entitlements; CODE_SIGN_STYLE = Automatic; DEVELOPMENT_TEAM = VCBDYB22D9; ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CURRENT_PROJECT_VERSION = 2; MARKETING_VERSION = 1.0.1; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2";}}; name = {name}; }};')
 for cid, name in [(P['DBG_TEST'],'Debug'),(P['REL_TEST'],'Release')]:
     L(f'\t\t{cid} /* {name} */ = {{isa = XCBuildConfiguration; buildSettings = {{BUNDLE_LOADER = "$(TEST_HOST)"; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ParentsHealth.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ParentsHealth"; PRODUCT_NAME = ParentsHealthTests; PRODUCT_BUNDLE_IDENTIFIER = com.widgetsflow.parentshealth.tests; SWIFT_VERSION = 5.0; IPHONEOS_DEPLOYMENT_TARGET = 17.0; GENERATE_INFOPLIST_FILE = YES;}}; name = {name}; }};')
 for cid, name in [(P['DBG_UITEST'],'Debug'),(P['REL_UITEST'],'Release')]:

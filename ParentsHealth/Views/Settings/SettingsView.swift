@@ -26,6 +26,7 @@ struct SettingsView: View {
     @State private var showDemoDataConfirm = false
     @State private var isLoadingDemoData = false
     @State private var iCloudSyncEnabled = AppSettings.iCloudSyncEnabled
+    @State private var showOnboarding = false
 
     var body: some View {
         NavigationStack {
@@ -252,10 +253,13 @@ struct SettingsView: View {
                 }
 
                 Section("About") {
+                    Button("Replay app tour") {
+                        showOnboarding = true
+                    }
                     HStack {
                         Text("Version")
                         Spacer()
-                        Text("1.0.0")
+                        Text("1.0.1")
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -273,6 +277,11 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showShareSheet) {
                 ShareSheet(items: shareItems)
+            }
+            .fullScreenCover(isPresented: $showOnboarding) {
+                OnboardingView {
+                    showOnboarding = false
+                }
             }
             .alert("Load sample data?", isPresented: $showDemoDataConfirm) {
                 Button("Replace All Data", role: .destructive) {

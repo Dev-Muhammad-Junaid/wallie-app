@@ -37,15 +37,19 @@ enum AppSettings {
         set { UserDefaults.standard.set(newValue, forKey: healthAlertsEnabledKey) }
     }
 
+    private static let hasCompletedOnboardingKey = "hasCompletedOnboarding"
+
+    static var hasCompletedOnboarding: Bool {
+        get { UserDefaults.standard.bool(forKey: hasCompletedOnboardingKey) }
+        set { UserDefaults.standard.set(newValue, forKey: hasCompletedOnboardingKey) }
+    }
+
     private static let iCloudSyncEnabledKey = "iCloudSyncEnabled"
 
     /// Sync parents, meds, labs, and appointments across devices signed into the same iCloud account.
     /// Changing this requires relaunching the app to rebuild the SwiftData container.
     static var iCloudSyncEnabled: Bool {
-        get {
-            if UserDefaults.standard.object(forKey: iCloudSyncEnabledKey) == nil { return true }
-            return UserDefaults.standard.bool(forKey: iCloudSyncEnabledKey)
-        }
+        get { UserDefaults.standard.bool(forKey: iCloudSyncEnabledKey) }
         set { UserDefaults.standard.set(newValue, forKey: iCloudSyncEnabledKey) }
     }
 
