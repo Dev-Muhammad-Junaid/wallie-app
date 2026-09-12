@@ -241,18 +241,13 @@ struct MedicationsView: View {
     }
 
     private func logDose(_ medication: Medication, status: MedicationStatus, hour: Int) {
-        let calendar = Calendar.current
-        let now = Date()
-        let day = calendar.startOfDay(for: now)
-        let stamped = calendar.date(bySettingHour: hour, minute: min(calendar.component(.minute, from: now), 59), second: 0, of: day) ?? now
-
-        if let existing = medication.todayLog(forHour: hour) {
-            existing.status = status
-            existing.takenAt = stamped
-        } else {
-            let log = MedicationLog(status: status, takenAt: stamped, medication: medication)
-            modelContext.insert(log)
-        }
+        _ = SiriCareActions.logDose(
+            medication: medication,
+            status: status,
+            hour: hour,
+            context: modelContext
+        )
+        try? modelContext.save()
         FeedbackService.success()
     }
 

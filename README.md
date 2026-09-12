@@ -18,6 +18,19 @@ A native iOS caregiver app for tracking a parent’s health in one private place
 - **Export** — Share a text health snapshot
 - **Onboarding** — First-run tour; replay from Settings
 
+## What’s cooking
+
+Shipped next, in roughly this order. Nothing here is medical advice.
+
+- **Siri on a real device** — Exercise Shortcuts, Action Button, and “What’s due today” on the iPad build, then tighten phrases that feel awkward in classic Siri.
+- **CloudKit family sync** — Restore the iCloud container on a paid team so two devices on the same Apple ID actually share parents, meds, labs, and visits. Today the toggle exists; personal-team installs stay on-device.
+- **Siblings on different Apple IDs** — Shared care data without forcing one iCloud login. Not started.
+- **Apple Intelligence, when the phone has it** — Visual Intelligence for bottle / lab photos, on-device Foundation Models for a short lab recap you can edit, and App Schema / on-screen “this” so newer Siri can act on what’s visible. iOS 17 keeps working without any of that.
+- **Widgets** — Today’s pending doses and next appointment on the Home Screen, using the same App Intents.
+- **Calendar handoff** — Optionally write visits into EventKit so they show up in Calendar. The in-app Care Network remains the source of truth.
+
+Intentionally not cooking: long-term “is this med in a healthy zone?” education. Too easy to read as treatment advice.
+
 ## Requirements
 
 | | |

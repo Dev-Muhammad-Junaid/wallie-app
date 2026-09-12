@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import AppIntents
 
 @main
 struct ParentsHealthApp: App {
@@ -9,7 +10,14 @@ struct ParentsHealthApp: App {
         ProcessInfo.processInfo.arguments.contains("UI_TESTING")
     }
 
-    var sharedModelContainer: ModelContainer = Persistence.makeContainer()
+    var sharedModelContainer: ModelContainer
+
+    init() {
+        let container = Persistence.makeContainer()
+        sharedModelContainer = container
+        IntentDependencies.register(container: container)
+        CareAppShortcuts.updateAppShortcutParameters()
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -22,9 +30,16 @@ struct ParentsHealthApp: App {
                     } else {
                         SampleData.seed(into: sharedModelContainer.mainContext)
                     }
+                    refreshSiriIndex()
                 }
         }
         .modelContainer(sharedModelContainer)
+    }
+
+    private func refreshSiriIndex() {
+        let parents = (try? sharedModelContainer.mainContext.fetch(FetchDescriptor<ParentProfile>())) ?? []
+        CareSpotlightIndexer.refresh(parents: parents)
+        CareAppShortcuts.updateAppShortcutParameters()
     }
 }
 

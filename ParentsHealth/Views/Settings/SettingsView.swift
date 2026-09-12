@@ -26,6 +26,7 @@ struct SettingsView: View {
     @State private var showDemoDataConfirm = false
     @State private var isLoadingDemoData = false
     @State private var iCloudSyncEnabled = AppSettings.iCloudSyncEnabled
+    @State private var siriSpotlightIndexingEnabled = AppSettings.siriSpotlightIndexingEnabled
     @State private var showOnboarding = false
 
     var body: some View {
@@ -222,6 +223,21 @@ struct SettingsView: View {
                     }
                 }
 
+                Section("Siri & Spotlight") {
+                    Toggle("Index names in Spotlight", isOn: $siriSpotlightIndexingEnabled)
+                        .onChange(of: siriSpotlightIndexingEnabled) { _, enabled in
+                            AppSettings.siriSpotlightIndexingEnabled = enabled
+                            CareSpotlightIndexer.refresh(parents: parents)
+                            CareAppShortcuts.updateAppShortcutParameters()
+                            statusMessage = enabled
+                                ? "Parent names, medication names, and visits can appear in Search."
+                                : "Search indexing is off. Siri shortcuts still work."
+                        }
+                    Text(siriSpotlightCaption)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+
                 Section("Family Sync") {
                     Toggle("iCloud Sync", isOn: $iCloudSyncEnabled)
                         .onChange(of: iCloudSyncEnabled) { _, enabled in
@@ -236,6 +252,12 @@ struct SettingsView: View {
                 Section("Privacy") {
                     Label("Health data stored with SwiftData", systemImage: "lock.shield.fill")
                     Label("Lab & medication OCR runs on-device", systemImage: "cpu")
+                    Label(
+                        siriSpotlightIndexingEnabled
+                            ? "Spotlight may show names you opted in"
+                            : "Siri shortcuts work without sharing names to Search",
+                        systemImage: siriSpotlightIndexingEnabled ? "sparkles" : "waveform"
+                    )
                     Label(
                         iCloudSyncEnabled
                             ? "Optional iCloud sync across your devices"
@@ -259,7 +281,7 @@ struct SettingsView: View {
                     HStack {
                         Text("Version")
                         Spacer()
-                        Text("1.0.1")
+                        Text("1.0.2")
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -303,6 +325,14 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    private var siriSpotlightCaption: String {
+        let shortcuts = "Siri on iOS 17 can still run phrases like “What’s due today in ParentsHealth” from Shortcuts — that does not index your health records."
+        if #available(iOS 18.0, *) {
+            return "Off by default. When on, only parent names, medication names, and visit titles go to Spotlight so newer Siri can find them. Labs, vitals, and notes stay in the app. \(shortcuts)"
+        }
+        return "Off by default. This iOS version can list names in Spotlight Search when you turn this on. Labs, vitals, and notes stay in the app. \(shortcuts)"
     }
 
     private func updateNotifications(enabled: Bool) async {
@@ -376,6 +406,8 @@ struct SettingsView: View {
             }
 
             isLoadingDemoData = false
+            CareSpotlightIndexer.refresh(parents: fetched)
+            CareAppShortcuts.updateAppShortcutParameters()
             statusMessage = "Loaded 1 year of demo data. Explore Home, Charts, Labs, and Meds."
             FeedbackService.success()
         }

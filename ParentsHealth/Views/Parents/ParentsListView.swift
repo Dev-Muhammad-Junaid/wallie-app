@@ -6,10 +6,12 @@ struct ParentsListView: View {
 
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var parentStore: SelectedParentStore
+    @EnvironmentObject private var navigationStore: AppNavigationStore
     @Query(sort: \ParentProfile.name) private var parents: [ParentProfile]
     @State private var parentToEdit: ParentProfile?
     @State private var parentToDelete: ParentProfile?
     @State private var showCareNetwork = false
+    @State private var detailParentID: UUID?
 
     init(showAddParent: Binding<Bool> = .constant(false)) {
         _showAddParent = showAddParent
@@ -91,6 +93,11 @@ struct ParentsListView: View {
             .navigationTitle("Parents")
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
+            .navigationDestination(item: $detailParentID) { id in
+                if let parent = parents.first(where: { $0.id == id }) {
+                    ParentDetailView(parent: parent)
+                }
+            }
         }
         .sheet(isPresented: $showCareNetwork) {
             CareProvidersView()
@@ -116,7 +123,18 @@ struct ParentsListView: View {
         }
         .onAppear {
             parentStore.ensureSelection(from: parents)
+            consumeParentDetailRequest()
         }
+        .onChange(of: navigationStore.requestedParentDetailID) { _, _ in
+            consumeParentDetailRequest()
+        }
+    }
+
+    private func consumeParentDetailRequest() {
+        guard let id = navigationStore.requestedParentDetailID else { return }
+        parentStore.parentID = id
+        detailParentID = id
+        navigationStore.requestedParentDetailID = nil
     }
 
     private func confirmDelete(_ parent: ParentProfile) {
@@ -177,5 +195,6 @@ struct ParentCard: View {
 #Preview {
     ParentsListView()
         .environmentObject(SelectedParentStore())
+        .environmentObject(AppNavigationStore())
         .modelContainer(SampleData.previewContainer)
 }

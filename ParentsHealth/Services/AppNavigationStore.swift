@@ -42,6 +42,8 @@ final class AppNavigationStore: ObservableObject {
     @Published var showHealthAlerts = false
     @Published var showAddMedication = false
     @Published var showCareNetwork = false
+    /// Opens a parent’s detail screen after a Siri, Spotlight, or URL request.
+    @Published var requestedParentDetailID: UUID?
 
     func openCharts(metric: MetricType? = nil) {
         chartsDataSource = .vitals
@@ -67,9 +69,17 @@ final class AppNavigationStore: ObservableObject {
         showCareNetwork = true
     }
 
-    func openMedications() {
+    func openParentProfile(_ id: UUID) {
+        requestedParentDetailID = id
+        requestedTab = .parents
+    }
+
+    func openMedications(parentID: UUID? = nil) {
         requestedTab = .medications
         showAddMedication = false
+        if let parentID {
+            requestedParentDetailID = parentID
+        }
     }
 
     func openAddMedication() {

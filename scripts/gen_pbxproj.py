@@ -70,6 +70,13 @@ app_files = [
     ("Services", "Services/SelectedParentStore.swift", "SelectedParentStore.swift"),
     ("Services", "Services/FeedbackService.swift", "FeedbackService.swift"),
     ("Services", "Services/AppNavigationStore.swift", "AppNavigationStore.swift"),
+    ("Services", "Services/SiriCareActions.swift", "SiriCareActions.swift"),
+    ("Services", "Services/AppDeepLink.swift", "AppDeepLink.swift"),
+    ("Services", "Services/CareSpotlightIndexer.swift", "CareSpotlightIndexer.swift"),
+    ("Intents", "Intents/IntentDependencies.swift", "IntentDependencies.swift"),
+    ("Intents", "Intents/CareEntities.swift", "CareEntities.swift"),
+    ("Intents", "Intents/CareIntents.swift", "CareIntents.swift"),
+    ("Intents", "Intents/CareAppShortcuts.swift", "CareAppShortcuts.swift"),
 ]
 
 test_files = [
@@ -83,6 +90,7 @@ test_files = [
     ("ParentsHealthTests/LabTrendServiceTests.swift", "LabTrendServiceTests.swift"),
     ("ParentsHealthTests/LabAnalysisServiceTests.swift", "LabAnalysisServiceTests.swift"),
     ("ParentsHealthTests/HealthAlertServiceTests.swift", "HealthAlertServiceTests.swift"),
+    ("ParentsHealthTests/SiriCareActionsTests.swift", "SiriCareActionsTests.swift"),
 ]
 uitest_files = [("ParentsHealthUITests/ParentsHealthUITests.swift", "ParentsHealthUITests.swift")]
 
@@ -97,7 +105,7 @@ P = {k: g.id(k) for k in [
     'PROJ_CL','APP_CL','TEST_CL','UITEST_CL','DBG_PROJ','REL_PROJ','DBG_APP','REL_APP','DBG_TEST','REL_TEST',
     'DBG_UITEST','REL_UITEST','TEST_DEP','UITEST_DEP','PROXY_TEST','PROXY_UITEST'
 ]}
-GIDS = {k: g.id(f'grp_{k}') for k in ['App','Models','Design','Views','Services','Dashboard','Parents','Care','Charts','Medications','Log','Labs','Settings','Alerts','Onboarding']}
+GIDS = {k: g.id(f'grp_{k}') for k in ['App','Models','Design','Views','Services','Dashboard','Parents','Care','Charts','Medications','Log','Labs','Settings','Alerts','Onboarding','Intents']}
 
 lines = []
 L = lines.append
@@ -149,13 +157,14 @@ L('/* End PBXFrameworksBuildPhase section */')
 L('\n/* Begin PBXGroup section */')
 L(f'\t\t{P["ROOT"]} = {{isa = PBXGroup; children = ({P["PH"]} /* ParentsHealth */, {P["TESTS_GRP"]} /* ParentsHealthTests */, {P["UITESTS_GRP"]} /* ParentsHealthUITests */, {P["PRODUCTS"]} /* Products */); sourceTree = "<group>"; }};')
 L(f'\t\t{P["PRODUCTS"]} = {{isa = PBXGroup; children = ({P["APP_PROD"]} /* ParentsHealth.app */, {P["TEST_PROD"]} /* ParentsHealthTests.xctest */, {P["UITEST_PROD"]} /* ParentsHealthUITests.xctest */); name = Products; sourceTree = "<group>"; }};')
-L(f'\t\t{P["PH"]} = {{isa = PBXGroup; children = ({GIDS["App"]} /* App */, {GIDS["Models"]} /* Models */, {GIDS["Design"]} /* Design */, {GIDS["Views"]} /* Views */, {GIDS["Services"]} /* Services */, {P["ASSETS_FR"]} /* Assets.xcassets */, {P["INFO_FR"]} /* Info.plist */, {P["ENT_FR"]} /* ParentsHealth.entitlements */); path = ParentsHealth; sourceTree = "<group>"; }};')
+L(f'\t\t{P["PH"]} = {{isa = PBXGroup; children = ({GIDS["App"]} /* App */, {GIDS["Models"]} /* Models */, {GIDS["Design"]} /* Design */, {GIDS["Views"]} /* Views */, {GIDS["Services"]} /* Services */, {GIDS["Intents"]} /* Intents */, {P["ASSETS_FR"]} /* Assets.xcassets */, {P["INFO_FR"]} /* Info.plist */, {P["ENT_FR"]} /* ParentsHealth.entitlements */); path = ParentsHealth; sourceTree = "<group>"; }};')
 
 subgroups = {
     'App': [('App/ParentsHealthApp.swift','ParentsHealthApp.swift'),('App/AppDelegate.swift','AppDelegate.swift')],
     'Models': [(f'Models/{n}',n) for n in ['MetricType.swift','ParentProfile.swift','HealthMetric.swift','Medication.swift','MedicationFrequency.swift','LabReport.swift','LabTestKey.swift','HealthAlert.swift','CareProvider.swift','Appointment.swift']],
     'Design': [('Design/AppTheme.swift','AppTheme.swift'),('Design/LiquidGlassComponents.swift','LiquidGlassComponents.swift'),('Design/SharedComponents.swift','SharedComponents.swift')],
-    'Services': [(f'Services/{n}',n) for n in ['SampleData.swift','HealthScoreCalculator.swift','MedicationAdherenceCalculator.swift','LabReportParser.swift','LabReportOCRService.swift','MedicationOCRService.swift','NotificationService.swift','HealthKitService.swift','ReportExportService.swift','AppSettings.swift','LabTrendService.swift','HealthAlertService.swift','LabAnalysisService.swift','LabReportRepository.swift','SelectedParentStore.swift','FeedbackService.swift','AppNavigationStore.swift']],
+    'Services': [(f'Services/{n}',n) for n in ['SampleData.swift','HealthScoreCalculator.swift','MedicationAdherenceCalculator.swift','LabReportParser.swift','LabReportOCRService.swift','MedicationOCRService.swift','NotificationService.swift','HealthKitService.swift','ReportExportService.swift','AppSettings.swift','LabTrendService.swift','HealthAlertService.swift','LabAnalysisService.swift','LabReportRepository.swift','SelectedParentStore.swift','FeedbackService.swift','AppNavigationStore.swift','SiriCareActions.swift','AppDeepLink.swift','CareSpotlightIndexer.swift']],
+    'Intents': [(f'Intents/{n}',n) for n in ['IntentDependencies.swift','CareEntities.swift','CareIntents.swift','CareAppShortcuts.swift']],
     'Dashboard': [('Views/Dashboard/DashboardView.swift','DashboardView.swift')],
     'Alerts': [('Views/Alerts/HealthAlertsView.swift','HealthAlertsView.swift')],
     'Parents': [('Views/Parents/ParentsListView.swift','ParentsListView.swift'),('Views/Parents/ParentDetailView.swift','ParentDetailView.swift'),('Views/Parents/ParentFormView.swift','ParentFormView.swift')],
@@ -233,7 +242,7 @@ L('\n/* Begin XCBuildConfiguration section */')
 for cid, name in [(P['DBG_PROJ'],'Debug'),(P['REL_PROJ'],'Release')]:
     L(f'\t\t{cid} /* {name} */ = {{isa = XCBuildConfiguration; buildSettings = {{IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; ENABLE_TESTABILITY = YES;}}; name = {name}; }};')
 for cid, name in [(P['DBG_APP'],'Debug'),(P['REL_APP'],'Release')]:
-    L(f'\t\t{cid} /* {name} */ = {{isa = XCBuildConfiguration; buildSettings = {{PRODUCT_NAME = ParentsHealth; PRODUCT_BUNDLE_IDENTIFIER = com.widgetsflow.parentshealth; INFOPLIST_FILE = ParentsHealth/Info.plist; CODE_SIGN_ENTITLEMENTS = ParentsHealth/ParentsHealth.entitlements; CODE_SIGN_STYLE = Automatic; DEVELOPMENT_TEAM = VCBDYB22D9; ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CURRENT_PROJECT_VERSION = 2; MARKETING_VERSION = 1.0.1; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2";}}; name = {name}; }};')
+    L(f'\t\t{cid} /* {name} */ = {{isa = XCBuildConfiguration; buildSettings = {{PRODUCT_NAME = ParentsHealth; PRODUCT_BUNDLE_IDENTIFIER = com.widgetsflow.parentshealth; INFOPLIST_FILE = ParentsHealth/Info.plist; CODE_SIGN_ENTITLEMENTS = ParentsHealth/ParentsHealth.entitlements; CODE_SIGN_STYLE = Automatic; DEVELOPMENT_TEAM = VCBDYB22D9; ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CURRENT_PROJECT_VERSION = 4; MARKETING_VERSION = 1.0.2; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2";}}; name = {name}; }};')
 for cid, name in [(P['DBG_TEST'],'Debug'),(P['REL_TEST'],'Release')]:
     L(f'\t\t{cid} /* {name} */ = {{isa = XCBuildConfiguration; buildSettings = {{BUNDLE_LOADER = "$(TEST_HOST)"; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ParentsHealth.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ParentsHealth"; PRODUCT_NAME = ParentsHealthTests; PRODUCT_BUNDLE_IDENTIFIER = com.widgetsflow.parentshealth.tests; SWIFT_VERSION = 5.0; IPHONEOS_DEPLOYMENT_TARGET = 17.0; GENERATE_INFOPLIST_FILE = YES;}}; name = {name}; }};')
 for cid, name in [(P['DBG_UITEST'],'Debug'),(P['REL_UITEST'],'Release')]:

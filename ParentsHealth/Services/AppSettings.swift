@@ -37,6 +37,16 @@ enum AppSettings {
         set { UserDefaults.standard.set(newValue, forKey: healthAlertsEnabledKey) }
     }
 
+    private static let siriSpotlightIndexingEnabledKey = "siriSpotlightIndexingEnabled"
+
+    /// Donate parent names, medication names, and appointments to Spotlight / Siri AI.
+    /// Off by default so health data is not searchable until the caregiver opts in.
+    /// App Shortcuts still work when this is off — those are explicit Siri phrases.
+    static var siriSpotlightIndexingEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: siriSpotlightIndexingEnabledKey) }
+        set { UserDefaults.standard.set(newValue, forKey: siriSpotlightIndexingEnabledKey) }
+    }
+
     private static let hasCompletedOnboardingKey = "hasCompletedOnboarding"
 
     static var hasCompletedOnboarding: Bool {

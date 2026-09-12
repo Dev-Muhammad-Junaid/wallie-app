@@ -198,6 +198,7 @@ private struct OnboardingPage: Identifiable {
             accent: AppTheme.softMint,
             points: [
                 OnboardingPoint(icon: "phone.fill", title: "Contacts in one tap", detail: "Name, specialty, clinic, and call or email from Care Network."),
+                OnboardingPoint(icon: "waveform", title: "Siri on every iPhone we support", detail: "Say Log a dose in ParentsHealth with classic Siri on iOS 17. Newer iOS can also use Apple Intelligence — names stay out of Search until you allow it in Settings."),
                 OnboardingPoint(icon: "calendar", title: "Visit reminders", detail: "Pick a date and get a local reminder before you go.")
             ]
         )

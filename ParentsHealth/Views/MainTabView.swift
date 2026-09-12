@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import CoreSpotlight
 
 private enum PresentedSheet: String, Identifiable {
     case quickLog
@@ -17,6 +18,7 @@ struct MainTabView: View {
     @Query(sort: \ParentProfile.name) private var parents: [ParentProfile]
     @EnvironmentObject private var parentStore: SelectedParentStore
     @EnvironmentObject private var navigationStore: AppNavigationStore
+    @Environment(\.scenePhase) private var scenePhase
     @Namespace private var tabHighlightNamespace
 
     @State private var selectedTab: AppTab = .dashboard
@@ -104,11 +106,27 @@ struct MainTabView: View {
         .onReceive(NotificationCenter.default.publisher(for: .appNavigationRequested)) { notification in
             handleNotificationNavigation(notification)
         }
+        .onOpenURL { url in
+            if let destination = AppDeepLink.parse(url) {
+                applyDeepLink(destination)
+            }
+        }
+        .onContinueUserActivity(CSSearchableItemActionType) { activity in
+            handleSpotlightActivity(activity)
+        }
         .task {
             parentStore.ensureSelection(from: parents)
             await NotificationService.shared.refreshAuthorizationStatus()
             if AppSettings.notificationsEnabled, NotificationService.shared.isAuthorized {
                 await NotificationService.shared.rescheduleAll(parents: parents)
+            }
+            CareSpotlightIndexer.refresh(parents: parents)
+            CareAppShortcuts.updateAppShortcutParameters()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                CareSpotlightIndexer.refresh(parents: parents)
+                CareAppShortcuts.updateAppShortcutParameters()
             }
         }
     }
@@ -213,17 +231,64 @@ struct MainTabView: View {
 
     private func handleNotificationNavigation(_ notification: Notification) {
         guard let type = notification.userInfo?["type"] as? String else { return }
+        let parentID = (notification.userInfo?["parentID"] as? String).flatMap(UUID.init(uuidString:))
         switch type {
         case "health_alert":
             presentedSheet = .healthAlerts
         case "medication":
+            if let parentID {
+                parentStore.parentID = parentID
+            }
             selectTab(.medications, animated: true)
         case "appointment":
+            if let parentID {
+                parentStore.parentID = parentID
+            }
             presentedSheet = .careNetwork
         case "weekly_summary":
             selectTab(.dashboard, animated: true)
+        case "open_parent":
+            if let parentID {
+                applyDeepLink(.parent(parentID))
+            }
+        case "open_labs":
+            applyDeepLink(.labs)
+        case "open_charts":
+            applyDeepLink(.charts)
         default:
             break
+        }
+    }
+
+    private func handleSpotlightActivity(_ activity: NSUserActivity) {
+        guard let identifier = activity.userInfo?[CSSearchableItemActivityIdentifier] as? String,
+              let destination = AppDeepLink.destination(fromSpotlightIdentifier: identifier) else {
+            return
+        }
+        applyDeepLink(destination)
+    }
+
+    private func applyDeepLink(_ destination: AppDeepLink.Destination) {
+        switch destination {
+        case let .parent(id):
+            parentStore.parentID = id
+            navigationStore.requestedParentDetailID = id
+            selectTab(.parents, animated: true)
+        case let .medications(parentID):
+            if let parentID {
+                parentStore.parentID = parentID
+            }
+            selectTab(.medications, animated: true)
+        case .labs:
+            selectTab(.labs, animated: true)
+        case .charts:
+            selectTab(.charts, animated: true)
+        case .care, .appointment:
+            presentedSheet = .careNetwork
+            selectTab(.parents, animated: true)
+        case .alerts:
+            presentedSheet = .healthAlerts
+            selectTab(.dashboard, animated: true)
         }
     }
 
