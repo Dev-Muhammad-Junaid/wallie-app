@@ -1,135 +1,141 @@
 # ParentsHealth
 
-A private iOS app to track your parents' health — vitals, medications, doctor visits, lab reports, and health scores. Built with native SwiftUI and Apple's Liquid Glass design language.
+A native iOS caregiver app for tracking a parent’s health in one private place — vitals, medications, lab reports, doctor visits, and alerts. Built with SwiftUI and SwiftData. Data stays on-device unless you turn on optional iCloud sync.
+
+**Not medical advice.** The app records what you log and flags values outside common reference ranges. It does not diagnose, treat, or replace a clinician.
 
 ## Features
 
-- **Parent Profiles** — manage multiple parents with conditions, blood type, emergency contacts
-- **Daily Vitals** — log blood pressure, weight, heart rate, and blood glucose
-- **Monthly Charts** — Swift Charts trends with month navigation and min/avg/max stats
-- **Medication Tracking** — daily / weekly / monthly / as-needed schedules, Taken/Skip/Undo, local reminders, adherence
-- **Medication Label Scan** — photo or camera OCR to prefill name and dosage
-- **Care Network** — save doctors (phone/email) and appointments with visit reminders
-- **Lab Report Analysis** — on-device OCR (Vision) + value extraction + AI-style insights
-- **HealthKit Sync** — optional import of BP, weight, HR, glucose from Apple Health
-- **iCloud Sync** — optional SwiftData CloudKit sync across devices on the same iCloud account
-- **Export Reports** — share text health summaries
-- **Health Score** — composite score from recent vitals
-- **Health Alerts** — out-of-range vitals and lab markers with severity, boundary analysis, trend direction, and plain-language health impact notes
-- **Liquid Glass UI** — `.glassEffect()` on iOS 26+ with material fallback on iOS 17–25
+- **Parent profiles** — Multiple parents, conditions, blood type, emergency contacts
+- **Vitals** — Blood pressure, weight, heart rate, glucose, with optional HealthKit import
+- **Charts** — Monthly vitals and lab trends, including BP systolic/diastolic stats
+- **Medications** — Daily, twice daily, weekly, monthly, and as-needed schedules; Taken / Skip / Undo per slot; local reminders; weekly adherence
+- **Label scan** — Camera or photo OCR to prefill medication name and dosage
+- **Labs** — On-device OCR and parsing, per-parent history, deltas vs the last report, optional remote API
+- **Care network** — Doctors (call / email) and appointments with visit reminders
+- **Health score & alerts** — Composite score plus out-of-range vitals and labs (informational only)
+- **Siri & Shortcuts** — Log a dose, ask what’s due today, next appointment, log BP, call a doctor — on iOS 17+ without Apple Intelligence
+- **Export** — Share a text health snapshot
+- **Onboarding** — First-run tour; replay from Settings
 
 ## Requirements
 
-- Xcode 16+
-- iOS 17.0+ (Liquid Glass effects on iOS 26+)
-- macOS for building and running
+| | |
+| --- | --- |
+| Xcode | 16 or later |
+| iOS | 17.0 or later (iPhone and iPad) |
+| Signing | Your Apple Development team in Xcode |
+| SwiftData | Required — this is why the floor is iOS 17, not 16 |
 
-## Getting Started
+Liquid Glass styling uses `.glassEffect()` on newer iOS and falls back to materials on iOS 17–25.
 
-1. Clone the repository
-2. Open `ParentsHealth.xcodeproj` in Xcode
-3. Select your development team in Signing & Capabilities
-4. Enable the **iCloud** capability with CloudKit (container `iCloud.com.widgetsflow.parentshealth`) if you want multi-device sync
-5. Build and run on simulator or device (⌘R)
+Apple Intelligence / Siri AI extras (semantic Spotlight) need iOS 18+ and an opt-in in **Settings → Siri & Spotlight**. Classic Siri phrases and the Shortcuts app work on every supported iOS version. Labs, vitals, and notes are never indexed.
 
-Sample data (Margaret & Robert Chen) is seeded automatically on first launch.
+## Getting started
 
-## Lab Reports — How It Works
+1. Clone the repo and open `ParentsHealth.xcodeproj`.
+2. Select your development team under **Signing & Capabilities**.
+3. Build and run on a simulator or device (⌘R).
 
-Each parent has their own lab report history:
+First launch seeds Margaret & Robert Chen so Home, Charts, Labs, and Meds have something to show. **Settings → Load 1-Year Sample Data** replaces all profiles with a fuller demo year.
+
+### Optional capabilities
+
+- **HealthKit** — already in the entitlements. Grant access in Settings or the Health app.
+- **iCloud Sync** — off by default. Personal-team installs may not include a CloudKit container; the app still runs on-device. A paid team plus the iCloud capability (`iCloud.com.widgetsflow.parentshealth`) is required for multi-device sync on the same Apple ID.
+- **Notifications** — medication reminders, appointment reminders, out-of-range alerts, weekly summary.
+
+## Siri, Shortcuts, and Spotlight
+
+App Intents live in `ParentsHealth/Intents/`. Useful phrases (include the app name):
+
+- “Log a dose in ParentsHealth”
+- “What’s due today in ParentsHealth”
+- “Next appointment in ParentsHealth”
+- “Log blood pressure in ParentsHealth”
+- “Call the doctor in ParentsHealth”
+
+You can also run the same actions from the Shortcuts app or the Action Button. Deep links use the `parentshealth://` scheme (`parent`, `meds`, `labs`, `care`, `charts`, `alerts`).
+
+**Settings → Index names in Spotlight** is off by default. When on, only parent names, medication names, and visit titles are donated — never lab values or vitals.
+
+## Lab reports
 
 ```
-Photo or paste → OCR + AI parse → Preview → Save → Charts
+Photo or paste → on-device OCR + parse → preview → save → Charts
 ```
 
-1. **Import** — Labs tab → `+` → snap photo or paste text (no long forms)
-2. **Analyze** — On-device by default (`LocalLabAnalysisProvider`). Optional API in Settings.
-3. **Save** — Values stored with canonical `LabTestKey` (glucose, hba1c, LDL, etc.)
-4. **Charts** — Charts tab → **Lab Trends** → line chart across all saved reports
-5. **Compare** — Report detail shows delta vs previous visit
+On-device analysis is the default. In **Settings → Lab Report AI** you can point at your own API; the app falls back to local parsing if the server is down.
 
-### Future AI API
-
-In **Settings → Lab Report AI**, add your endpoint. Expected JSON:
+Expected JSON:
 
 ```json
 {
-  "results": [{ "testKey": "glucose", "testName": "Glucose", "value": 110, "unit": "mg/dL", "referenceRange": "70–100", "isAbnormal": false }],
+  "results": [
+    {
+      "testKey": "glucose",
+      "testName": "Glucose",
+      "value": 110,
+      "unit": "mg/dL",
+      "referenceRange": "70–100",
+      "isAbnormal": false
+    }
+  ],
   "labDate": "2026-03-15T00:00:00Z",
   "insights": "Optional summary text"
 }
 ```
 
-Falls back to on-device parsing if API is unavailable.
+Canonical keys include glucose, HbA1c, lipids, and common CBC/CMP markers (`LabTestKey`).
 
-## Quick Entry UX
+## Privacy
 
-- **Vitals** — tap metric chip → enter number → Save (2 taps + typing)
-- **Labs** — photo or paste → Analyze → Save (no title required)
-- **Parent chips** — shared across Labs, Charts, Quick Log
+- SwiftData on device by default. No analytics.
+- Lab and medication OCR run on-device.
+- HealthKit is read-only import you turn on.
+- iCloud sync is optional and only shares with other devices on the **same** Apple ID. Different Apple IDs (for example two siblings) do not share a database yet.
+- Siri shortcuts work without Search indexing. Spotlight is opt-in and name-only.
 
-## Health Alerts
+## Project structure
 
-The app surfaces **out-of-range indicators** so you can see what needs attention without digging through every log:
+```
+ParentsHealth/
+├── App/           Entry point, persistence, app delegate
+├── Models/        SwiftData: parents, vitals, meds, labs, doctors, appointments
+├── Design/        Theme and Liquid Glass components
+├── Views/         Home, Parents, Charts, Labs, Meds, Care, Settings, Onboarding
+├── Services/      HealthKit, notifications, OCR, alerts, export, Siri helpers
+└── Intents/       App Intents, entities, and App Shortcuts
 
-1. **Home** — bell icon (badge count) and **Health Alerts** card with top priorities
-2. **Alerts screen** — filter by vitals vs labs; each card shows:
-   - Value vs reference range (above/below boundary)
-   - Severity: Watch · Needs attention · Priority
-   - Trend for labs (improving / worsening / stable)
-   - **What this can affect** — educational notes on possible body/health impact
-   - Suggested next step (informational, not medical advice)
-3. **Notifications** — optional push when a new vital or lab save is out of range (Settings → Out-of-Range Health Alerts)
-
-Vitals use the last 7 days; labs use the latest result per test key from saved reports.
+ParentsHealthTests/     Unit tests
+ParentsHealthUITests/   Launch and tab UI tests
+scripts/                Xcode project generator and offline logic checks
+```
 
 ## Testing
-
-### Xcode (full suite)
 
 ```bash
 xcodebuild test \
   -project ParentsHealth.xcodeproj \
   -scheme ParentsHealth \
-  -destination 'platform=iOS Simulator,name=iPhone 16' \
+  -destination 'platform=iOS Simulator,name=iPhone 17' \
   CODE_SIGNING_ALLOWED=NO
 ```
 
-**Unit tests** (`ParentsHealthTests`): health score, lab parser, metric ranges, adherence, export, health alerts  
-**UI tests** (`ParentsHealthUITests`): tab navigation, settings, core screens
+- **Unit tests** — health score, lab parser, metric ranges, med schedules, adherence, OCR helpers, export, alerts, Siri care actions, deep links
+- **UI tests** — launch with `UI_TESTING` (skips onboarding, seeds demo data), tab navigation, settings
 
-### Offline logic validation (no Xcode)
+Without Xcode:
 
 ```bash
 python3 scripts/validate_logic.py
 ```
 
-## Project Structure
-
-```
-ParentsHealth/
-├── App/              Entry point, app delegate
-├── Models/           SwiftData models (profiles, metrics, meds, labs)
-├── Design/           Liquid Glass components & theme
-├── Views/            Dashboard, Parents, Charts, Labs, Meds, Settings
-└── Services/         Notifications, HealthKit, OCR, parsers, export
-
-ParentsHealthTests/   Unit tests
-ParentsHealthUITests/ UI tests
-scripts/              Offline logic validation
-```
-
-## Privacy
-
-Health data is stored with SwiftData. Lab and medication OCR/analysis run on-device. Optional **iCloud Sync** (Settings) keeps the same Apple ID’s devices in sync via CloudKit — siblings using different Apple IDs do not share a database yet. No analytics.
-
-## Linear Project
-
-Track development in [ParentsHealth on Linear](https://linear.app/widgetsflow/project/parentshealth-e6951c4d67ce).
+After adding Swift files, regenerate the Xcode project with `python3 scripts/gen_pbxproj.py`.
 
 ## Design
 
-Inspired by Apple's Liquid Glass (WWDC25) and Hallmark anti-slop layout principles — asymmetric bento dashboard, distinctive teal/coral palette, glass functional layer over rich gradient backgrounds.
+Midnight / deep teal / soft mint / warm coral. Glass cards over a health gradient, shared parent chips, and a floating tab bar. Liquid Glass on newer iOS; the same layout on iOS 17.
 
 ## License
 
